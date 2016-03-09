@@ -102,3 +102,4 @@ vimscript/mal.vim
 bin/
 lib/
 share/
+/python3/pip-selfcheck.json
