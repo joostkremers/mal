@@ -38,7 +38,12 @@ def read_str(input_str):
 
 
 def tokenize(input_str):
-    token_regexp = r"""[\s,]*(~@|[\[\]{}()'`~^@]|"(?:\\.|[^\\"])*"|;.*|[^\s\[\]{}('"`,;)]*)"""
+    token_regexp = (r'[\s,]*'
+                    r'(~@|'
+                    r'[\[\]{}()\'`~^@]|'
+                    r'"(?:\\.|[^\\"])*"'
+                    r'|;.*|'
+                    r'[^\s\[\]{}(\'"`,;)]*)')
 
     tokens = re.findall(token_regexp, input_str)
     # not sure how to remove the final empty element from the list.
