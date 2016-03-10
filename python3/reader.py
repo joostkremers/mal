@@ -104,7 +104,11 @@ def read_sequence(form, token):
         if token == '':  # We've reached the end of FORM.
             return mal_types.MalError("ParenError",
                                       "Missing closing parenthesis")
-        res.append(read_form(form))
+        next_form = read_form(form)
+        if next_form.type == "error":
+            return next_form
+
+        res.append(next_form)
 
     # Now we need to move past the end token
     form.next()
@@ -138,6 +142,8 @@ def create_hash(items):
 
 def apply_reader_macro(form, token):
     next_form = read_form(form)
+    if next_form.type == "error":
+        return next_form
     replacement = mal_types.MalSymbol(reader_macros[token])
     return mal_types.MalList([replacement, next_form])
 
