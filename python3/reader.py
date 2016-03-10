@@ -161,6 +161,14 @@ def read_atom(form, token):
     if re.match(r'\A:.*\Z', token):
         return mal_types.MalKeyword(token)
 
+    # boolean
+    if token in ["true", "false"]:
+        return mal_types.MalBoolean(token)
+
+    # nil
+    if token == "nil":
+        return mal_types.MalNil()
+
     # symbols
     if re.match(r"[^\s\[\]{}('\"`,;)]*", token):
         return mal_types.MalSymbol(token)

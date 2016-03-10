@@ -24,6 +24,17 @@ class MalList(MalType):
         return '(' + ' '.join(str_list) + ')'
 
 
+class MalNil(MalType):
+    """Mal nil type."""
+
+    def __init__(self):
+        self.value = []
+        self.type = "nil"
+
+    def __str__(self):
+        return "nil"
+
+
 class MalVector(MalType):
     """Mal vector type."""
 
@@ -116,3 +127,10 @@ class MalKeyword(MalType):
 
     def __str__(self):
         return self.name
+
+
+class MalBoolean(MalType):
+    """Mal boolean type."""
+
+    def __str__(self):
+        return self.value
