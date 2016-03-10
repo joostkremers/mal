@@ -1,3 +1,43 @@
+# Usage/help
+all help:
+	@echo
+	@echo 'USAGE:'
+	@echo
+	@echo 'Rules/Targets:'
+	@echo
+	@echo 'make "IMPL"                       # build all steps of IMPL'
+	@echo 'make "IMPL^STEP"                  # build STEP of IMPL'
+	@echo
+	@echo 'make "test"                       # test all implementations'
+	@echo 'make "test^IMPL"                  # test all steps of IMPL'
+	@echo 'make "test^STEP"                  # test STEP for all implementations'
+	@echo 'make "test^IMPL^STEP"             # test STEP of IMPL'
+	@echo
+	@echo 'make "perf"                       # run microbenchmarks for all implementations'
+	@echo 'make "perf^IMPL"                  # run microbenchmarks for IMPL'
+	@echo
+	@echo 'make "repl^IMPL"                  # run stepA of IMPL'
+	@echo 'make "repl^IMPL^STEP"             # test STEP of IMPL'
+	@echo
+	@echo 'make "clean"                      # run 'make clean' for all implementations'
+	@echo 'make "clean^IMPL"                 # run 'make clean' for IMPL'
+	@echo
+	@echo 'make "stats"                      # run 'make stats' for all implementations'
+	@echo 'make "stats-lisp"                 # run 'make stats-lisp' for all implementations'
+	@echo 'make "stats^IMPL"                 # run 'make stats' for IMPL'
+	@echo 'make "stats-lisp^IMPL"            # run 'make stats-lisp' for IMPL'
+	@echo
+	@echo 'Options/Settings:'
+	@echo
+	@echo 'make MAL_IMPL=IMPL "test^mal..."  # use IMPL for self-host tests'
+	@echo 'make REGRESS=1 "test..."          # test with previous step tests too'
+	@echo 'make DOCKERIZE=1 ...              # to dockerize above rules/targets'
+	@echo
+	@echo 'Other:'
+	@echo
+	@echo 'make "docker-build^IMPL"          # build docker image for IMPL'
+	@echo
+
 #
 # Command line settings
 #
@@ -15,10 +55,13 @@ TEST_OPTS =
 # Test with previous test files not just the test files for the
 # current step. Step 0 and 1 tests are special and not included in
 # later steps.
-REGRESS=
+REGRESS =
 
 # Extra implementation specific options to pass to runtest.py
 mal_TEST_OPTS = --start-timeout 60 --test-timeout 120
+
+# Run target/rule within docker image for the implementation
+DOCKERIZE =
 
 #
 # Settings
@@ -229,6 +272,16 @@ vb_RUNSTEP =      mono ../$(2) --raw $(3)
 vimscript_RUNSTEP = ./run_vimscript.sh ../$(2) $(3)
 
 
+# DOCKERIZE utility functions
+lc = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$1))))))))))))))))))))))))))
+impl_to_image = kanaka/mal-test-$(call lc,$(1))
+
+actual_impl = $(if $(filter mal,$(1)),$(MAL_IMPL),$(1))
+
+get_build_prefix = $(if $(strip $(DOCKERIZE)),docker run -it --rm -u $(shell id -u) -v $(dir $(abspath $(lastword $(MAKEFILE_LIST)))):/mal -w /mal/$(1) $(if $(filter factor,$(1)),-e FACTOR_ROOTS=$(FACTOR_ROOTS),) $(call impl_to_image,$(1)) ,)
+get_run_prefix = $(if $(strip $(DOCKERIZE)),docker run -it --rm -u $(shell id -u) -v $(dir $(abspath $(lastword $(MAKEFILE_LIST)))):/mal -w /mal/$(call actual_impl,$(1)) $(if $(filter factor,$(1)),-e FACTOR_ROOTS=$(FACTOR_ROOTS),) $(call impl_to_image,$(call actual_impl,$(1))) ,)
+
+
 vimscript_TEST_OPTS = --test-timeout 30
 ifeq ($(MAL_IMPL),vimscript)
 mal_TEST_OPTS = --start-timeout 60 --test-timeout 180
@@ -263,14 +316,21 @@ ALL_REPL = $(strip $(sort \
 .PHONY: $(foreach i,$(DO_IMPLS),$(foreach s,$(STEPS),$(call $(i)_STEP_TO_PROG,$(s))))
 $(foreach i,$(DO_IMPLS),$(foreach s,$(STEPS),$(call $(i)_STEP_TO_PROG,$(s)))):
 	$(foreach impl,$(word 1,$(subst /, ,$(@))),\
-	  $(MAKE) -C $(impl) $(subst $(impl)/,,$(@)))
+	  $(if $(DOCKERIZE), \
+	    $(call get_build_prefix,$(impl))$(MAKE) $(patsubst $(impl)/%,%,$(@)), \
+	    $(MAKE) -C $(impl) $(subst $(impl)/,,$(@))))
 
-# Allow test, test^STEP, test^IMPL, and test^IMPL^STEP
+# Allow IMPL, and IMPL^STEP
 .SECONDEXPANSION:
-$(IMPL_TESTS): $$(filter $$@^%,$$(ALL_TESTS))
+$(DO_IMPLS): $$(foreach s,$$(STEPS),$$(call $$(@)_STEP_TO_PROG,$$(s)))
 
 .SECONDEXPANSION:
-$(STEP_TESTS): $$(foreach step,$$(subst test^,,$$@),$$(filter %^$$(step),$$(ALL_TESTS)))
+$(foreach i,$(DO_IMPLS),$(foreach s,$(STEPS),$(i)^$(s))): $$(call $$(word 1,$$(subst ^, ,$$(@)))_STEP_TO_PROG,$$(word 2,$$(subst ^, ,$$(@))))
+
+
+#
+# Test rules
+#
 
 .SECONDEXPANSION:
 $(ALL_TESTS): $$(call $$(word 2,$$(subst ^, ,$$(@)))_STEP_TO_PROG,$$(word 3,$$(subst ^, ,$$(@))))
@@ -280,33 +340,23 @@ $(ALL_TESTS): $$(call $$(word 2,$$(subst ^, ,$$(@)))_STEP_TO_PROG,$$(word 3,$$(s
 	    $(foreach test,$(call STEP_TEST_FILES,$(impl),$(step)),\
 	      echo '----------------------------------------------'; \
 	      echo 'Testing $@, step file: $+, test file: $(test)'; \
-	      echo 'Running: ../runtest.py $(TEST_OPTS) $(call $(impl)_TEST_OPTS) ../$(test) -- $(call $(impl)_RUNSTEP,$(step),$(+))'; \
-	      ../runtest.py $(TEST_OPTS) $(call $(impl)_TEST_OPTS) ../$(test) -- $(call $(impl)_RUNSTEP,$(step),$(+));)))
+	      echo 'Running: $(call get_run_prefix,$(impl))../runtest.py $(TEST_OPTS) $(call $(impl)_TEST_OPTS) ../$(test) -- $(call $(impl)_RUNSTEP,$(step),$(+))'; \
+	      $(call get_run_prefix,$(impl))../runtest.py $(TEST_OPTS) $(call $(impl)_TEST_OPTS) ../$(test) -- $(call $(impl)_RUNSTEP,$(step),$(+));)))
 
+# Allow test, tests, test^STEP, test^IMPL, and test^IMPL^STEP
 test: $(ALL_TESTS)
 tests: $(ALL_TESTS)
 
-
-# Stats rules
-
-stats: $(IMPL_STATS)
-stats-lisp: $(IMPL_STATS_LISP)
+.SECONDEXPANSION:
+$(IMPL_TESTS): $$(filter $$@^%,$$(ALL_TESTS))
 
 .SECONDEXPANSION:
-$(IMPL_STATS):
-	@echo "----------------------------------------------"; \
-	$(foreach impl,$(word 2,$(subst ^, ,$(@))),\
-	  echo "Stats for $(impl):"; \
-	  $(MAKE) --no-print-directory -C $(impl) stats)
+$(STEP_TESTS): $$(foreach step,$$(subst test^,,$$@),$$(filter %^$$(step),$$(ALL_TESTS)))
 
-.SECONDEXPANSION:
-$(IMPL_STATS_LISP):
-	@echo "----------------------------------------------"; \
-	$(foreach impl,$(word 2,$(subst ^, ,$(@))),\
-	  echo "Stats (lisp only) for $(impl):"; \
-	  $(MAKE) --no-print-directory -C $(impl) stats-lisp)
 
-# dist rules
+#
+# Dist rules
+#
 
 dist: $(IMPL_DIST)
 
@@ -317,7 +367,10 @@ $(IMPL_DIST):
 	  echo "Running: make -C $(impl) dist"; \
 	  $(MAKE) --no-print-directory -C $(impl) dist)
 
+
+#
 # Docker build rules
+#
 
 docker-build: $(DOCKER_BUILD)
 
@@ -325,10 +378,13 @@ docker-build: $(DOCKER_BUILD)
 $(DOCKER_BUILD):
 	echo "----------------------------------------------"; \
 	$(foreach impl,$(word 2,$(subst ^, ,$(@))),\
-	  echo "Running: docker build -t kanaka/mal-test-$(impl) .:"; \
-	  cd $(impl) && docker build -t kanaka/mal-test-$(impl) .)
+	  echo "Running: docker build -t $(call impl_to_image,$(impl)) .:"; \
+	  cd $(impl) && docker build -t $(call impl_to_image,$(impl)) .)
 
+
+#
 # Performance test rules
+#
 
 perf: $(IMPL_PERF)
 
@@ -338,18 +394,17 @@ $(IMPL_PERF):
 	$(foreach impl,$(word 2,$(subst ^, ,$(@))),\
 	  cd $(if $(filter mal,$(impl)),$(MAL_IMPL),$(impl)); \
 	  echo "Performance test for $(impl):"; \
-	  echo 'Running: $(call $(impl)_RUNSTEP,stepA,$(call $(impl)_STEP_TO_PROG,stepA),../tests/perf1.mal)'; \
-          $(call $(impl)_RUNSTEP,stepA,$(call $(impl)_STEP_TO_PROG,stepA),../tests/perf1.mal); \
+	  echo 'Running: $(call get_run_prefix,$(impl))$(call $(impl)_RUNSTEP,stepA,$(call $(impl)_STEP_TO_PROG,stepA),../tests/perf1.mal)'; \
+          $(call get_run_prefix,$(impl))$(call $(impl)_RUNSTEP,stepA,$(call $(impl)_STEP_TO_PROG,stepA),../tests/perf1.mal); \
 	  echo 'Running: $(call $(impl)_RUNSTEP,stepA,$(call $(impl)_STEP_TO_PROG,stepA),../tests/perf2.mal)'; \
-          $(call $(impl)_RUNSTEP,stepA,$(call $(impl)_STEP_TO_PROG,stepA),../tests/perf2.mal); \
+          $(call get_run_prefix,$(impl))$(call $(impl)_RUNSTEP,stepA,$(call $(impl)_STEP_TO_PROG,stepA),../tests/perf2.mal); \
 	  echo 'Running: $(call $(impl)_RUNSTEP,stepA,$(call $(impl)_STEP_TO_PROG,stepA),../tests/perf3.mal)'; \
-          $(call $(impl)_RUNSTEP,stepA,$(call $(impl)_STEP_TO_PROG,stepA),../tests/perf3.mal))
+          $(call get_run_prefix,$(impl))$(call $(impl)_RUNSTEP,stepA,$(call $(impl)_STEP_TO_PROG,stepA),../tests/perf3.mal))
 
+
+#
 # REPL invocation rules
-# Allow repl^IMPL^STEP and repl^IMPL (which starts REPL of stepA)
-
-.SECONDEXPANSION:
-$(IMPL_REPL): $$@^stepA
+#
 
 .SECONDEXPANSION:
 $(ALL_REPL): $$(call $$(word 2,$$(subst ^, ,$$(@)))_STEP_TO_PROG,$$(word 3,$$(subst ^, ,$$(@))))
@@ -357,11 +412,17 @@ $(ALL_REPL): $$(call $$(word 2,$$(subst ^, ,$$(@)))_STEP_TO_PROG,$$(word 3,$$(su
 	  $(foreach step,$(word 3,$(subst ^, ,$(@))),\
 	    cd $(if $(filter mal,$(impl)),$(MAL_IMPL),$(impl)); \
 	    echo 'REPL implementation $(impl), step file: $+'; \
-	    echo 'Running: $(call $(impl)_RUNSTEP,$(step),$(+))'; \
-	    $(call $(impl)_RUNSTEP,$(step),$(+));))
+	    echo 'Running: $(call get_run_prefix,$(impl))$(call $(impl)_RUNSTEP,$(step),$(+))'; \
+	    $(call get_run_prefix,$(impl))$(call $(impl)_RUNSTEP,$(step),$(+));))
+
+# Allow repl^IMPL^STEP and repl^IMPL (which starts REPL of stepA)
+.SECONDEXPANSION:
+$(IMPL_REPL): $$@^stepA
 
 
+#
 # Recursive rules (call make FOO in each subdirectory)
+#
 
 define recur_template
 .PHONY: $(1)
@@ -370,8 +431,11 @@ $(1): $(2)
 $(2):
 	@echo "----------------------------------------------"; \
 	$$(foreach impl,$$(word 2,$$(subst ^, ,$$(@))),\
-	  echo "Running: $$(MAKE) --no-print-directory -C $$(impl) $(1)"; \
-	  $$(MAKE) --no-print-directory -C $$(impl) $(1))
+	  $$(if $$(DOCKERIZE), \
+	    echo "Running: $$(call get_build_prefix,$$(impl))$$(MAKE) --no-print-directory $(1)"; \
+	    $$(call get_build_prefix,$$(impl))$$(MAKE) --no-print-directory $(1), \
+	    echo "Running: $$(MAKE) --no-print-directory -C $$(impl) $(1)"; \
+	    $$(MAKE) --no-print-directory -C $$(impl) $(1)))
 endef
 
 recur_impls_ = $(filter-out $(foreach impl,$($(1)_EXCLUDES),$(1)^$(impl)),$(foreach impl,$(IMPLS),$(1)^$(impl)))
@@ -385,4 +449,3 @@ $(eval $(call recur_template,stats-lisp,$(call recur_impls_,stats-lisp)))
 
 # recursive dist
 $(eval $(call recur_template,dist,$(call recur_impls_,dist)))
-
