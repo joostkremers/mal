@@ -132,5 +132,20 @@ class MalKeyword(MalType):
 class MalBoolean(MalType):
     """Mal boolean type."""
 
+    def __init__(self, value):
+        self.value = value
+        self.type = "boolean"
+
     def __str__(self):
         return self.value
+
+
+class MalFunction(MalType):
+    """Mal function type"""
+
+    def __init__(self, value):
+        self.value = value
+        self.type = "function"
+
+    def __str__(self):
+        return "<Function>"
