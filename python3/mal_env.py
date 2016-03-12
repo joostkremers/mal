@@ -1,75 +1,33 @@
-import mal_types
+import mal_types as mal
 
 
-def mal_add(*args):
-    """Sum numbers.
+class Env():
+    """Mal environment class.
 
-    If ARGS contains only one element, it is returned. If ARG is empty, the
-    return value is 0.
-
-    """
-    return mal_types.MalInt(sum(map(lambda arg: arg.value, args)))
-
-
-def mal_substract(*args):
-    """Substract numbers.
-
-    If ARG contains just a single element, it is negated. If ARG is empty, the
-    return value is 0.
+    An environment mapping symbols to Mal objects. Note that the symbols are
+    stored as strings, not as Mal objects.
 
     """
-    if len(args) > 1:
-        first = args[0].value
-        args = args[1:]
-    else:
-        first = 0
 
-    for n in args:
-        first -= n.value
+    def __init__(self, outer=None, data={}):
+        self.outer = outer
+        self.data = data
 
-    return mal_types.MalInt(first)
+    def set(self, symbol, value):
+        self.data[symbol] = value
 
+    def find(self, symbol):
+        if symbol in self.data:
+            return self
+        elif self.outer is not None:
+            return self.outer.find(symbol)
+        else:
+            return None
 
-def mal_multiply(*args):
-    """Multiply numbers.
-
-    If args contains only one element, it is returned. If ARG is empty, the
-    return value is 1.
-
-    """
-    if len(args) > 1:
-        first = args[0].value
-        args = args[1:]
-    else:
-        first = 1
-
-    for n in args:
-        first *= n.value
-
-    return mal_types.MalInt(first)
-
-
-def mal_divide(*args):
-    """Divide numbers.
-
-    If ARGS contains zero or one element(s), the return value is 0.
-
-    """
-    if len(args) > 1:
-        first = args[0].value
-        args = args[1:]
-    else:
-        first = 0
-
-    for n in args:
-        if n.value == 0:
-            return mal_types.MalError("Arithmetic error", "Division by zero")
-        first //= n.value
-
-    return mal_types.MalInt(first)
-
-
-repl_env = {'+': mal_types.MalFunction(mal_add),
-            '-': mal_types.MalFunction(mal_substract),
-            '*': mal_types.MalFunction(mal_multiply),
-            '/': mal_types.MalFunction(mal_divide)}
+    def get(self, symbol):
+        env = self.find(symbol)
+        if env:
+            return env.data[symbol]
+        else:
+            return mal.Error("SymbolError",
+                             "Symbol's value is void '{}'". format(symbol))

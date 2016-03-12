@@ -12,7 +12,7 @@ class MalType:
         return ""
 
 
-class MalList(MalType):
+class List(MalType):
     """Mal list type."""
 
     def __init__(self, value=[]):
@@ -24,7 +24,7 @@ class MalList(MalType):
         return '(' + ' '.join(str_list) + ')'
 
 
-class MalNil(MalType):
+class Nil(MalType):
     """Mal nil type."""
 
     def __init__(self):
@@ -35,7 +35,7 @@ class MalNil(MalType):
         return "nil"
 
 
-class MalVector(MalType):
+class Vector(MalType):
     """Mal vector type."""
 
     def __init__(self, value=[]):
@@ -47,7 +47,7 @@ class MalVector(MalType):
         return '[' + ' '.join(items) + ']'
 
 
-class MalHash(MalType):
+class Hash(MalType):
     """Mal hash table type."""
 
     def __init__(self, value={}):
@@ -61,7 +61,7 @@ class MalHash(MalType):
         return '{' + ' '.join(items) + '}'
 
 
-class MalSymbol(MalType):
+class Symbol(MalType):
     """Mal symbol type."""
 
     def __init__(self, name):
@@ -72,7 +72,7 @@ class MalSymbol(MalType):
         return self.name
 
 
-class MalError(MalType):
+class Error(MalType):
     """Mal error type."""
 
     def __init__(self, type, descr):
@@ -84,7 +84,7 @@ class MalError(MalType):
         return self.error + ": " + self.descr
 
 
-class MalInt(MalType):
+class Int(MalType):
     """Mal integer type."""
 
     def __init__(self, value):
@@ -95,7 +95,7 @@ class MalInt(MalType):
         return str(self.value)
 
 
-class MalString(MalType):
+class String(MalType):
     """Mal string type."""
 
     def __init__(self, value):
@@ -112,7 +112,7 @@ class MalString(MalType):
         return '"' + self.value + '"'
 
 
-class MalKeyword(MalType):
+class Keyword(MalType):
     """Mal keyword type."""
 
     def __init__(self, name):
@@ -129,7 +129,7 @@ class MalKeyword(MalType):
         return self.name
 
 
-class MalBoolean(MalType):
+class Boolean(MalType):
     """Mal boolean type."""
 
     def __init__(self, value):
@@ -140,7 +140,7 @@ class MalBoolean(MalType):
         return self.value
 
 
-class MalFunction(MalType):
+class Function(MalType):
     """Mal function type"""
 
     def __init__(self, value):

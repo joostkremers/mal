@@ -1,6 +1,6 @@
 # coding=utf-8
 import re
-import mal_types
+import mal_types as mal
 
 
 class Reader:
@@ -83,7 +83,7 @@ def read_form(form):
     elif token in reader_macros:
         return apply_reader_macro(form, token)
     elif token == '':
-        return mal_types.MalType("comment")
+        return mal.MalType("comment")
     else:
         return read_atom(form, token)
 
@@ -102,8 +102,7 @@ def read_sequence(form, token):
         if token == end_token:  # We've found the end of the list.
             break
         if token == '':  # We've reached the end of FORM.
-            return mal_types.MalError("ParenError",
-                                      "Missing closing parenthesis")
+            return mal.Error("ParenError", "Missing closing parenthesis")
         next_form = read_form(form)
         if next_form.type == "error":
             return next_form
@@ -114,11 +113,11 @@ def read_sequence(form, token):
     form.next()
 
     if end_token == ')':
-        return mal_types.MalList(res)
+        return mal.List(res)
     elif end_token == '}':
         return create_hash(res)
     else:
-        return mal_types.MalVector(res)
+        return mal.Vector(res)
 
 
 def create_hash(items):
@@ -130,52 +129,52 @@ def create_hash(items):
     # mal_guide.
 
     if (len(items) % 2) != 0:
-        return mal_types.MalError("HashError", "Insufficient number of items")
+        return mal.Error("HashError", "Insufficient number of items")
 
     res = {}
     for i in range(0, len(items), 2):
         key = items[i]
         value = items[i+1]
         res[key] = value
-    return mal_types.MalHash(res)
+    return mal.Hash(res)
 
 
 def apply_reader_macro(form, token):
     next_form = read_form(form)
     if next_form.type == "error":
         return next_form
-    replacement = mal_types.MalSymbol(reader_macros[token])
-    return mal_types.MalList([replacement, next_form])
+    replacement = mal.Symbol(reader_macros[token])
+    return mal.List([replacement, next_form])
 
 
 def read_atom(form, token):
     # integers
     if re.match(r'\A-?[0-9]+\Z', token):
-        return mal_types.MalInt(int(token))
+        return mal.Int(int(token))
 
     # strings
     if re.match(r'\A"(.*)"\Z', token):
-        return mal_types.MalString(token[1:-1])
+        return mal.String(token[1:-1])
 
     # keywords
     if re.match(r'\A:.*\Z', token):
-        return mal_types.MalKeyword(token)
+        return mal.Keyword(token)
 
     # boolean
     if token in ["true", "false"]:
-        return mal_types.MalBoolean(token)
+        return mal.Boolean(token)
 
     # nil
     if token == "nil":
-        return mal_types.MalNil()
+        return mal.Nil()
 
     # symbols
     if re.match(r"[^\s\[\]{}('\"`,;)]*", token):
-        return mal_types.MalSymbol(token)
+        return mal.Symbol(token)
 
-    # found nothing parsable
-    return mal_types.MalError("ParseError",
-                              "Could not parse token: '{}'".format(token))
+    # Found nothing parsable. (Shouldn't really happen, since symbols are a
+    # catch-all already.)
+    return mal.Error("ParseError", "Could not parse token: '{}'".format(token))
 
 
 def main():
