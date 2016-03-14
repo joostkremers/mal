@@ -93,7 +93,7 @@ def read_sequence(form, token):
         if token == '':  # We've reached the end of FORM.
             return mal.Error("ParenError", "Missing closing parenthesis")
         next_form = read_form(form)
-        if next_form.type == "error":
+        if isinstance(next_form, mal.Error):
             return next_form
 
         res.append(next_form)
@@ -102,7 +102,7 @@ def read_sequence(form, token):
     form.next()
 
     if end_token == ')':
-        return mal.List(res)
+        return res
     elif end_token == '}':
         return create_hash(res)
     else:
@@ -125,25 +125,25 @@ def create_hash(items):
         key = items[i]
         value = items[i+1]
         res[key] = value
-    return mal.Hash(res)
+    return res
 
 
 def apply_reader_macro(form, token):
     next_form = read_form(form)
-    if next_form.type == "error":
+    if isinstance(next_form, mal.Error):
         return next_form
     replacement = mal.Symbol(reader_macros[token])
-    return mal.List([replacement, next_form])
+    return [replacement, next_form]
 
 
 def read_atom(form, token):
     # integers
     if re.match(r'\A-?[0-9]+\Z', token):
-        return mal.Int(int(token))
+        return int(token)
 
     # strings
     if re.match(r'\A"(.*)"\Z', token):
-        return mal.String(token[1:-1])
+        return token
 
     # keywords
     if re.match(r'\A:.*\Z', token):
@@ -151,9 +151,9 @@ def read_atom(form, token):
 
     # boolean
     if token == "true":
-        return mal.Boolean(True)
+        return True
     if token == "false":
-        return mal.Boolean(False)
+        return False
 
     # nil
     if token == "nil":

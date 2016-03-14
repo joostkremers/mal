@@ -34,7 +34,11 @@ class MalEnv():
     def set(self, symbol, value):
         if isinstance(symbol, mal.Symbol):
             symbol = symbol.name
-        self.data[symbol] = value
+        if isinstance(symbol, str):
+            self.data[symbol] = value
+            return value
+        else:
+            return mal.Error("TypeError", "Cannot bind to non-symbol")
 
     def find(self, symbol):
         if isinstance(symbol, mal.Symbol):
