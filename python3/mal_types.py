@@ -11,12 +11,21 @@ class MalType:
     def __str__(self):
         return ""
 
+    def __eq__(self, other):
+        if self.type == other.type and self.value == other.value:
+            return True
+        else:
+            return False
+
 
 class List(MalType):
     """Mal list type."""
 
-    def __init__(self, value=[]):
-        self.value = value
+    def __init__(self, value=None):
+        if value is None:
+            self.value = []
+        else:
+            self.value = value
         self.type = "list"
 
     def __str__(self):
@@ -28,7 +37,7 @@ class Nil(MalType):
     """Mal nil type."""
 
     def __init__(self):
-        self.value = []
+        self.value = None
         self.type = "nil"
 
     def __str__(self):
@@ -38,8 +47,11 @@ class Nil(MalType):
 class Vector(MalType):
     """Mal vector type."""
 
-    def __init__(self, value=[]):
-        self.value = value
+    def __init__(self, value=None):
+        if value is None:
+            self.value = []
+        else:
+            self.value = value
         self.type = "vector"
 
     def __str__(self):
@@ -50,8 +62,11 @@ class Vector(MalType):
 class Hash(MalType):
     """Mal hash table type."""
 
-    def __init__(self, value={}):
-        self.value = value
+    def __init__(self, value=None):
+        if value is None:
+            self.value = {}
+        else:
+            self.value = value
         self.type = "hash"
 
     def __str__(self):
@@ -102,9 +117,6 @@ class String(MalType):
         self.value = value
         self.type = "string"
 
-    def __eq__(self, other):
-        return self.value == other.value
-
     def __hash__(self):
         return hash(self.value)
 
@@ -120,7 +132,10 @@ class Keyword(MalType):
         self.type = "keyword"
 
     def __eq__(self, other):
-        return self.name == other.name
+        if self.type == other.type and self.name == other.name:
+            return True
+        else:
+            return False
 
     def __hash__(self):
         return hash(self.name)
@@ -137,7 +152,10 @@ class Boolean(MalType):
         self.type = "boolean"
 
     def __str__(self):
-        return self.value
+        if self.value is True:
+            return "true"
+        else:
+            return "false"
 
 
 class Function(MalType):
@@ -148,4 +166,4 @@ class Function(MalType):
         self.type = "function"
 
     def __str__(self):
-        return "<Function>"
+        return "#<Function>"

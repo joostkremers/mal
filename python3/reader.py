@@ -32,17 +32,6 @@ class Reader:
         else:
             return self.tokens[self.position]
 
-    # def apply_reader_macro(self, replacement, wrap=True):
-    #     """Apply a reader macro to the current token.
-
-    #     The token is replaced with REPLACEMENT. If WRAP == True, the replacement
-    #     and the following token are wrapped in a list.
-
-    #     """
-    #     self.tokens = replacement
-    #     if wrap:
-    #         self.tokens.insert(self.position, '(')
-    #         self.tokens.insert(self.position + 3, ')')
 
 reader_macros = {"'": "quote",
                  "`": "quasiquote",
@@ -161,8 +150,10 @@ def read_atom(form, token):
         return mal.Keyword(token)
 
     # boolean
-    if token in ["true", "false"]:
-        return mal.Boolean(token)
+    if token == "true":
+        return mal.Boolean(True)
+    if token == "false":
+        return mal.Boolean(False)
 
     # nil
     if token == "nil":
