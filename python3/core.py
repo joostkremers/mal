@@ -205,10 +205,6 @@ def mal_println(*args):
     return mal.Nil()
 
 
-def mal_qmark(arg):
-    return list(arg)
-
-
 # core namespace
 ns = {'+':      mal.Function(mal_add),
       '-':      mal.Function(mal_substract),
@@ -229,6 +225,4 @@ ns = {'+':      mal.Function(mal_add),
       'pr-str': mal.Function(mal_pr_str),
       'str': mal.Function(mal_str),
       'prn': mal.Function(mal_prn),
-      'println': mal.Function(mal_println),
-
-      '?': mal.Function(mal_qmark)}
+      'println': mal.Function(mal_println)}
