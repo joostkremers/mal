@@ -18,17 +18,24 @@ class MalEnv():
         else:
             self.data = data
 
-        e = 0
-        for b in binds:
-            if isinstance(b, mal.Symbol):
-                sym = b.name
+        for i in range(len(binds)):
+            if isinstance(binds[i], mal.Symbol):
+                sym = binds[i].name
             else:
-                sym = b
-            if e < len(exprs):
-                val = exprs[e]
-                e += 1
+                sym = binds[i]
+
+            if sym == '&':
+                sym = binds[i+1]
+                val = list(exprs)[i:]
+                self.set(sym, val)
+                break
+
             else:
-                val = mal.Nil()
+                if i < len(exprs):
+                    val = exprs[i]
+                else:
+                    val = mal.Nil()
+
             self.set(sym, val)
 
     def set(self, symbol, value):

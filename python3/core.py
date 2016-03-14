@@ -188,21 +188,25 @@ def mal_count(arg):
 
 
 def mal_pr_str(*args):
-    return " ".join([printer.pr_str(arg, print_readably=True) for arg in args])
+    return " ".join([printer.pr_str(arg, True) for arg in args])
 
 
 def mal_str(*args):
-    return "".join([printer.pr_str(arg, print_readably=False) for arg in args])
+    return "".join([printer.pr_str(arg, False) for arg in args])
 
 
 def mal_prn(*args):
-    print(" ".join([printer.pr_str(arg, print_readably=True) for arg in args]))
+    print(" ".join([printer.pr_str(arg, True) for arg in args]))
     return mal.Nil()
 
 
 def mal_println(*args):
-    print("".join([printer.pr_str(arg, print_readably=False) for arg in args]))
+    print(" ".join([printer.pr_str(arg, False) for arg in args]))
     return mal.Nil()
+
+
+def mal_qmark(arg):
+    return list(arg)
 
 
 # core namespace
@@ -225,4 +229,6 @@ ns = {'+':      mal.Function(mal_add),
       'pr-str': mal.Function(mal_pr_str),
       'str': mal.Function(mal_str),
       'prn': mal.Function(mal_prn),
-      'println': mal.Function(mal_println)}
+      'println': mal.Function(mal_println),
+
+      '?': mal.Function(mal_qmark)}

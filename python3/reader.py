@@ -74,7 +74,7 @@ def read_form(form):
     elif token == '':
         return mal.MalType("comment")
     else:
-        return read_atom(form, token)
+        return read_atom(token)
 
 
 def read_sequence(form, token):
@@ -136,14 +136,18 @@ def apply_reader_macro(form, token):
     return [replacement, next_form]
 
 
-def read_atom(form, token):
+def read_atom(token):
     # integers
     if re.match(r'\A-?[0-9]+\Z', token):
         return int(token)
 
     # strings
     if re.match(r'\A"(.*)"\Z', token):
-        return token
+        string = token[1:-1]
+        string = string.replace(r'\"', '"')
+        string = string.replace(r'\n', '\n')
+        string = string.replace(r'\\', '\\')
+        return string
 
     # keywords
     if re.match(r'\A:.*\Z', token):

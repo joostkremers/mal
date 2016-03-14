@@ -11,7 +11,7 @@ class MalType:
         self.value = object
 
     def __str__(self):
-        return "#<Mal parent type>"
+        return ""
 
     def __eq__(self, other):
         if type(self) != type(other):
@@ -41,6 +41,18 @@ class Vector(MalType):
     def __str__(self):
         items = [str(s) for s in self.value]
         return '[' + ' '.join(items) + ']'
+
+    def __eq__(self, other):
+        if isinstance(self, Vector):
+            val1 = self.value
+        else:
+            val1 = self
+        if isinstance(other, Vector):
+            val2 = other.value
+        else:
+            val2 = other
+
+        return val1 == val2
 
 
 class Symbol(MalType):

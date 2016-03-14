@@ -11,7 +11,7 @@ def READ(line):
 
 
 def EVAL(ast, env):
-    if isinstance(ast, list):
+    if isinstance(ast, list) and len(ast) > 0:
         if isinstance(ast[0], mal.Symbol):
             symbol = ast[0].name
             # Note: def! and let* can only take a single form.
@@ -116,6 +116,10 @@ def mal_fn(environment, syms, body):
     if isinstance(syms, mal.Vector):
         syms = syms.value
 
+    if '&' in syms:
+        if syms.index('&') != len(syms) - 2:
+            return mal.Error("BindsError", "Illegal binds list")
+
     def mal_closure(*params):
         new_env = env.MalEnv(outer=environment, binds=syms, exprs=params)
         return EVAL(body, new_env)
@@ -166,7 +170,7 @@ def rep(line, env):
     return PRINT(result)
 
 
-def runmal():
+def Mal():
     print("MAL in Python3")
     print()
 
@@ -191,4 +195,4 @@ def runmal():
         print(result)
 
 if __name__ == '__main__':
-    runmal()
+    Mal()
