@@ -64,6 +64,9 @@ class Symbol(MalType):
     def __str__(self):
         return self.name
 
+    def __repr__(self):
+        return "<Mal Symbol object '{}'>".format(self.name)
+
     def __eq__(self, other):
         if type(self) != type(other):
             return False
@@ -105,11 +108,30 @@ class Keyword(MalType):
         return self.name
 
 
-class Function(MalType):
-    """Mal function type"""
+class Builtin(MalType):
+    """Mal builtin function type."""
 
-    def __init__(self, value):
-        self.value = value
+    def __init__(self, fn=None):
+        self.fn = fn
 
     def __str__(self):
-        return "#<Function>"
+        return "#<Builtin function>"
+
+
+class Function(MalType):
+    """Mal function type."""
+
+    def __init__(self, fn=None, params=None, ast=None, env=None):
+        self.fn = fn
+        self.params = params
+        self.ast = ast
+        self.env = env
+
+    def __str__(self):
+        return "#<User function>"
+
+    def __repr__(self):
+        return "\n".join(["Function: " + self.fn.__repr__(),
+                          "Params:" + self.params.__repr__(),
+                          "AST:" + self.ast.__repr__(),
+                          "Env: " + self.env.__repr__()])

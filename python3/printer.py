@@ -1,4 +1,4 @@
-import mal_types as mal
+import mal_types as mtype
 
 
 def pr_str(object, print_readably=False):
@@ -6,7 +6,7 @@ def pr_str(object, print_readably=False):
         str_list = [pr_str(s, print_readably) for s in object]
         return '(' + ' '.join(str_list) + ')'
 
-    elif isinstance(object, mal.Vector):
+    elif isinstance(object, mtype.Vector):
         str_list = [pr_str(s, print_readably) for s in object.value]
         return '[' + ' '.join(str_list) + ']'
 

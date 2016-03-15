@@ -1,8 +1,8 @@
 import readline  # so input() uses editable input
 import reader
 import printer
-import mal_types as mal
-import mal_env as env
+import mal_types as mtype
+import mal_env as menv
 import core
 
 
@@ -11,34 +11,48 @@ def READ(line):
 
 
 def EVAL(ast, env):
-    if isinstance(ast, list) and len(ast) > 0:
-        if isinstance(ast[0], mal.Symbol):
-            symbol = ast[0].name
-            # Note: def! and let* can only take a single form.
-            if symbol == "def!":
-                return mal_def(env, ast[1], ast[2])
-            elif symbol == "let*":
-                return mal_let(env, ast[1], ast[2])
-            elif symbol == "do":
-                return mal_do(env, ast[1:])
-            elif symbol == "if":
-                return mal_if(env, ast[1:])
-            elif symbol == "fn*":
-                return mal_fn(env, ast[1], ast[2])
-
-        # Either the list does not start with a symbol, or the symbol is not a
-        # special form
-        evalled = eval_ast(ast, env)
-        if isinstance(evalled, mal.Error):
-            return evalled
-        elif not isinstance(evalled[0], mal.Function):
-            return mal.Error("ApplyError",
-                             "'{}' is not a function object".
-                             format(evalled[0]))
+    while True:
+        if isinstance(ast, mtype.Error):
+            return ast
+        elif not isinstance(ast, list) or len(ast) == 0:
+            return eval_ast(ast, env)
         else:
-            return evalled[0].value(*evalled[1:])
-    else:  # not a list
-        return eval_ast(ast, env)
+            if isinstance(ast[0], mtype.Symbol):
+                symbol = ast[0].name
+                # Special forms
+                if symbol == "def!":
+                    return mal_def(env, ast[1], ast[2])
+                elif symbol == "let*":
+                    ast, env = mal_let(env, ast[1], ast[2])
+                    continue
+                elif symbol == "do":
+                    evalled = eval_ast(ast[:-1], env)
+                    if isinstance(evalled, mtype.Error):
+                        return evalled
+                    ast = ast[-1]
+                    continue
+                elif symbol == "if":
+                    ast = mal_if(env, ast[1:])
+                    continue
+                elif symbol == "fn*":
+                    return mal_fn(env, ast[1], ast[2])
+
+        # If the list does not start with a symbol or if the symbol is not a
+        # special form, we evaluate and apply:
+        evalled = eval_ast(ast, env)
+        if isinstance(evalled, mtype.Error):
+            return evalled
+        elif isinstance(evalled[0], mtype.Builtin):
+            return evalled[0].fn(*evalled[1:])
+        elif isinstance(evalled[0], mtype.Function):
+            ast = evalled[0].ast
+            env = menv.MalEnv(outer=evalled[0].env,
+                              binds=evalled[0].params,
+                              exprs=evalled[1:])
+            continue
+        else:
+            return mtype.Error("ApplyError",
+                               "'{}' is not callable".format(evalled[0]))
 
 
 # Special forms
@@ -51,80 +65,58 @@ def mal_def(environment, symbol, value):
 
 
 def mal_let(environment, bindings, body):
-    if bindings.type not in ["list", "vector"]:
-        return mal.Error("LetError", "Invalid bind form")
+    if not isinstance(bindings, (list, mtype.Vector)):
+        return (mtype.Error("LetError", "Invalid bind form"), None)
     if (len(bindings.value) % 2 != 0):
-        return mal.Error("LetError", "Insufficient bind forms")
+        return (mtype.Error("LetError", "Insufficient bind forms"), None)
 
-    new_env = env.MalEnv(outer=environment)
-    # Note: bindings may be a list or a mal.Vector.
-    if isinstance(bindings, mal.Vector):
+    new_env = menv.MalEnv(outer=environment)
+    # Note: bindings may be a list or an mtype.Vector.
+    if isinstance(bindings, mtype.Vector):
         bindings = bindings.value
     for i in range(0, len(bindings), 2):
-        if not isinstance(bindings[i], mal.Symbol):
-            return mal.Error("LetError", "Attempt to bind to non-symbol")
+        if not isinstance(bindings[i], mtype.Symbol):
+            return (mtype.Error("LetError", "Attempt to bind to non-symbol"),
+                    None)
 
         evalled = EVAL(bindings[i+1], new_env)
-        if isinstance(evalled, mal.Error):
-            return evalled
+        if isinstance(evalled, mtype.Error):
+            return (evalled, None)
 
         new_env.set(bindings[i].name, evalled)
 
-    return EVAL(body, new_env)
-
-
-def mal_do(environment, forms):
-    evalled = eval_ast(forms, environment)
-    if isinstance(evalled, mal.Error):
-        return evalled
-    else:
-        return evalled[-1]
-
-# The alternative (original) implementation of `mal_do', which runs through the
-# list itself, may be bad because of the environment: I use a dictionary to
-# implement it, which is passed by reference, so that if an argument of `do`
-# modifies it, the modifications are visible by later arguments. Depending on
-# the language and the implenetation of the environment, this may not always be
-# the case, however.
-
-
-# def mal_do(environment, forms):
-#     for form in forms:
-#         evalled = EVAL(form, environment)
-#         if evalled.type == "error":
-#             break
-#     return evalled
+    return (body, new_env)
 
 
 def mal_if(environment, args):
     if len(args) < 2:
-        return mal.Error("ArgError",
-                         "'if' expects 2-3 arguments, "
-                         "received {}".format(len(args)))
+        return mtype.Error("ArgError",
+                           "'if' requires 2-3 arguments, "
+                           "received {}".format(len(args)))
 
     condition = EVAL(args[0], environment)
-    if (condition is not False) and (not isinstance(condition, mal.Nil)):
-        return EVAL(args[1], environment)
+    if (condition is not False) and (not isinstance(condition, mtype.Nil)):
+        return args[1]
     else:
         if len(args) == 3:
-            return EVAL(args[2], environment)
+            return args[2]
         else:
-            return mal.Nil()
+            return mtype.Nil()
 
 
 def mal_fn(environment, syms, body):
-    if isinstance(syms, mal.Vector):
+    if isinstance(syms, mtype.Vector):
         syms = syms.value
 
     if '&' in syms:
         if syms.index('&') != len(syms) - 2:
-            return mal.Error("BindsError", "Illegal binds list")
+            return mtype.Error("BindsError", "Illegal binds list")
 
     def mal_closure(*params):
-        new_env = env.MalEnv(outer=environment, binds=syms, exprs=params)
+        new_env = menv.MalEnv(outer=environment, binds=syms, exprs=params)
         return EVAL(body, new_env)
 
-    return mal.Function(mal_closure)
+    return mtype.Function(mal_closure, syms, body, environment)
 
 
 def PRINT(data):
@@ -132,20 +124,21 @@ def PRINT(data):
 
 
 def eval_ast(ast, env):
-    if isinstance(ast, mal.Symbol):
+    if isinstance(ast, mtype.Symbol):
+        # print(ast.__repr__())
         return env.get(ast.name)
 
     elif isinstance(ast, list):
         return eval_list(ast, env)
 
-    elif isinstance(ast, mal.Vector):
-        return mal.Vector(eval_list(ast.value, env))
+    elif isinstance(ast, mtype.Vector):
+        return mtype.Vector(eval_list(ast.value, env))
 
     elif isinstance(ast, dict):
         res = {}
         for key, val in ast.items():
             newval = EVAL(val, env)
-            if isinstance(newval, mal.Error):
+            if isinstance(newval, mtype.Error):
                 return newval
             res[key] = newval
         return res
@@ -158,7 +151,7 @@ def eval_list(ast, env):
     res = []
     for elem in ast:
         val = EVAL(elem, env)
-        if isinstance(val, mal.Error):
+        if isinstance(val, mtype.Error):
             return val
         res.append(val)
     return res
@@ -171,16 +164,19 @@ def rep(line, env):
 
 
 def Mal():
-    print("MAL in Python3")
+    print("MAL in Python3 v5.0")
+    print("Based on Make-a-Lisp")
+    print("Copyright (c) 2016 Joost Kremers")
     print()
 
-    repl_env = env.MalEnv()
+    repl_env = menv.MalEnv()
 
     for sym in core.ns:
         repl_env.set(sym, core.ns[sym])
 
     # Add a language-defined 'not' function:
     rep("(def! not (fn* (a) (if a false true)))", repl_env)
+    rep("(def! sum2 (fn* (n acc) (if (= n 0) acc (sum2 (- n 1) (+ n acc)))))", repl_env)
 
     while True:
         try:

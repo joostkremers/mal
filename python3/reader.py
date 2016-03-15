@@ -1,6 +1,6 @@
 # coding=utf-8
 import re
-import mal_types as mal
+import mal_types as mtype
 
 
 class Reader:
@@ -72,7 +72,7 @@ def read_form(form):
     elif token in reader_macros:
         return apply_reader_macro(form, token)
     elif token == '':
-        return mal.MalType("comment")
+        return mtype.MalType("comment")
     else:
         return read_atom(token)
 
@@ -91,9 +91,9 @@ def read_sequence(form, token):
         if token == end_token:  # We've found the end of the list.
             break
         if token == '':  # We've reached the end of FORM.
-            return mal.Error("ParenError", "Missing closing parenthesis")
+            return mtype.Error("ParenError", "Missing closing parenthesis")
         next_form = read_form(form)
-        if isinstance(next_form, mal.Error):
+        if isinstance(next_form, mtype.Error):
             return next_form
 
         res.append(next_form)
@@ -106,7 +106,7 @@ def read_sequence(form, token):
     elif end_token == '}':
         return create_hash(res)
     else:
-        return mal.Vector(res)
+        return mtype.Vector(res)
 
 
 def create_hash(items):
@@ -118,7 +118,7 @@ def create_hash(items):
     # mal_guide.
 
     if (len(items) % 2) != 0:
-        return mal.Error("HashError", "Insufficient number of items")
+        return mtype.Error("HashError", "Insufficient number of items")
 
     res = {}
     for i in range(0, len(items), 2):
@@ -130,9 +130,9 @@ def create_hash(items):
 
 def apply_reader_macro(form, token):
     next_form = read_form(form)
-    if isinstance(next_form, mal.Error):
+    if isinstance(next_form, mtype.Error):
         return next_form
-    replacement = mal.Symbol(reader_macros[token])
+    replacement = mtype.Symbol(reader_macros[token])
     return [replacement, next_form]
 
 
@@ -151,7 +151,7 @@ def read_atom(token):
 
     # keywords
     if re.match(r'\A:.*\Z', token):
-        return mal.Keyword(token)
+        return mtype.Keyword(token)
 
     # boolean
     if token == "true":
@@ -161,15 +161,16 @@ def read_atom(token):
 
     # nil
     if token == "nil":
-        return mal.Nil()
+        return mtype.Nil()
 
     # symbols
     if re.match(r"[^\s\[\]{}('\"`,;)]*", token):
-        return mal.Symbol(token)
+        return mtype.Symbol(token)
 
     # Found nothing parsable. (Shouldn't really happen, since symbols are a
     # catch-all already.)
-    return mal.Error("ParseError", "Could not parse token: '{}'".format(token))
+    return mtype.Error("ParseError", "Could not parse token: '{}'".
+                       format(token))
 
 
 def main():

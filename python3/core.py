@@ -1,4 +1,4 @@
-import mal_types as mal
+import mal_types as mtype
 import printer
 
 
@@ -15,7 +15,7 @@ def mal_add(*args):
     try:
         res = sum(args)
     except TypeError:
-        return mal.Error("ArgError", "'+': Wrong type argument")
+        return mtype.Error("ArgError", "'+': Wrong type argument")
 
     return res
 
@@ -37,7 +37,7 @@ def mal_substract(*args):
         for n in args:
             first -= n
     except TypeError:
-        return mal.Error("ArgError", "'-': Wrong type argument")
+        return mtype.Error("ArgError", "'-': Wrong type argument")
 
     return first
 
@@ -59,7 +59,7 @@ def mal_multiply(*args):
         for n in args:
             first *= n
     except TypeError:
-        return mal.Error("ArgError", "'*': Wrong type argument")
+        return mtype.Error("ArgError", "'*': Wrong type argument")
 
     return first
 
@@ -80,9 +80,9 @@ def mal_divide(*args):
         for n in args:
             first //= n
     except ZeroDivisionError:
-        return mal.Error("ArithmeticError", "Division by zero")
+        return mtype.Error("ArithmeticError", "Division by zero")
     except TypeError:
-        return mal.Error("ArgError", "'/': Wrong type argument")
+        return mtype.Error("ArgError", "'/': Wrong type argument")
 
     return first
 
@@ -102,9 +102,9 @@ def mal_equal(*args):
 def mal_less(*args):
     for i in range(len(args)-1):
         if not isinstance(args[i], int):
-            return mal.Error("ArgError",
-                             "Wrong type argument: "
-                             "expected number, got {}".format(type(args[i])))
+            return mtype.Error("ArgError",
+                               "Wrong type argument: "
+                               "expected number, got {}".format(type(args[i])))
         if not args[i] < args[i+1]:
             return False
     return True
@@ -113,9 +113,9 @@ def mal_less(*args):
 def mal_less_or_equal(*args):
     for i in range(len(args)-1):
         if not isinstance(args[i], int):
-            return mal.Error("ArgError",
-                             "Wrong type argument: "
-                             "expected number, got {}".format(type(args[i])))
+            return mtype.Error("ArgError",
+                               "Wrong type argument: "
+                               "expected number, got {}".format(type(args[i])))
         if not args[i] <= args[i+1]:
             return False
     return True
@@ -124,9 +124,9 @@ def mal_less_or_equal(*args):
 def mal_greater(*args):
     for i in range(len(args)-1):
         if not isinstance(args[i], int):
-            return mal.Error("ArgError",
-                             "Wrong type argument: "
-                             "expected number, got {}".format(type(args[i])))
+            return mtype.Error("ArgError",
+                               "Wrong type argument: "
+                               "expected number, got {}".format(type(args[i])))
         if not args[i] > args[i+1]:
             return False
     return True
@@ -135,9 +135,9 @@ def mal_greater(*args):
 def mal_greater_or_equal(*args):
     for i in range(len(args)-1):
         if not isinstance(args[i], int):
-            return mal.Error("ArgError",
-                             "Wrong type argument: "
-                             "expected number, got {}".format(type(args[i])))
+            return mtype.Error("ArgError",
+                               "Wrong type argument: "
+                               "expected number, got {}".format(type(args[i])))
         if not args[i] >= args[i+1]:
             return False
     return True
@@ -158,12 +158,12 @@ def mal_listp(arg):
 
 
 def mal_emptyp(arg):
-    if isinstance(arg, mal.Vector):
+    if isinstance(arg, mtype.Vector):
         arg = arg.value
     if not isinstance(arg, list):
-        return mal.Error("ArgError",
-                         "Wrong type argument: "
-                         "expected list or vector, got {}".format(type(arg)))
+        return mtype.Error("ArgError",
+                           "Wrong type argument: "
+                           "expected list or vector, got {}".format(type(arg)))
 
     if arg == []:
         return True
@@ -172,14 +172,14 @@ def mal_emptyp(arg):
 
 
 def mal_count(arg):
-    if isinstance(arg, mal.Nil):
+    if isinstance(arg, mtype.Nil):
         return 0
-    if isinstance(arg, mal.Vector):
+    if isinstance(arg, mtype.Vector):
         arg = arg.value
     if not isinstance(arg, list):
-        return mal.Error("ArgError",
-                         "Wrong type argument: "
-                         "expected list or vector, got {}".format(type(arg)))
+        return mtype.Error("ArgError",
+                           "Wrong type argument: "
+                           "expected list or vector, got {}".format(type(arg)))
 
     return len(arg)
 
@@ -197,32 +197,38 @@ def mal_str(*args):
 
 def mal_prn(*args):
     print(" ".join([printer.pr_str(arg, True) for arg in args]))
-    return mal.Nil()
+    return mtype.Nil()
 
 
 def mal_println(*args):
     print(" ".join([printer.pr_str(arg, False) for arg in args]))
-    return mal.Nil()
+    return mtype.Nil()
+
+
+def mal_props(arg):
+    print(arg.__repr__)
+    return mtype.Nil()
 
 
 # core namespace
-ns = {'+':      mal.Function(mal_add),
-      '-':      mal.Function(mal_substract),
-      '*':      mal.Function(mal_multiply),
-      '/':      mal.Function(mal_divide),
+ns = {'+':       mtype.Builtin(mal_add),
+      '-':       mtype.Builtin(mal_substract),
+      '*':       mtype.Builtin(mal_multiply),
+      '/':       mtype.Builtin(mal_divide),
 
-      '=':      mal.Function(mal_equal),
-      '<':      mal.Function(mal_less),
-      '<=':     mal.Function(mal_less_or_equal),
-      '>':      mal.Function(mal_greater),
-      '>=':     mal.Function(mal_greater_or_equal),
+      '=':       mtype.Builtin(mal_equal),
+      '<':       mtype.Builtin(mal_less),
+      '<=':      mtype.Builtin(mal_less_or_equal),
+      '>':       mtype.Builtin(mal_greater),
+      '>=':      mtype.Builtin(mal_greater_or_equal),
 
-      'list':   mal.Function(mal_list),
-      'list?':  mal.Function(mal_listp),
-      'empty?': mal.Function(mal_emptyp),
-      'count':  mal.Function(mal_count),
+      'list':    mtype.Builtin(mal_list),
+      'list?':   mtype.Builtin(mal_listp),
+      'empty?':  mtype.Builtin(mal_emptyp),
+      'count':   mtype.Builtin(mal_count),
 
-      'pr-str': mal.Function(mal_pr_str),
-      'str': mal.Function(mal_str),
-      'prn': mal.Function(mal_prn),
-      'println': mal.Function(mal_println)}
+      'pr-str':  mtype.Builtin(mal_pr_str),
+      'str':     mtype.Builtin(mal_str),
+      'prn':     mtype.Builtin(mal_prn),
+      'println': mtype.Builtin(mal_println),
+      'props':   mtype.Builtin(mal_props)}
