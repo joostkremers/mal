@@ -129,9 +129,3 @@ class Function(MalType):
 
     def __str__(self):
         return "#<User function>"
-
-    def __repr__(self):
-        return "\n".join(["Function: " + self.fn.__repr__(),
-                          "Params:" + self.params.__repr__(),
-                          "AST:" + self.ast.__repr__(),
-                          "Env: " + self.env.__repr__()])
