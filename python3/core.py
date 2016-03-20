@@ -111,7 +111,7 @@ def mal_less_or_equal(*args):
     for i in range(len(args)-1):
         if not isinstance(args[i], int):
             return mtype.Error("ArgError",
-                               "Wrong type argument: "
+                               "'<=': Wrong type argument: "
                                "expected number, got {}".format(type(args[i])))
         if not args[i] <= args[i+1]:
             return False
@@ -122,7 +122,7 @@ def mal_greater(*args):
     for i in range(len(args)-1):
         if not isinstance(args[i], int):
             return mtype.Error("ArgError",
-                               "Wrong type argument: "
+                               "'>': Wrong type argument: "
                                "expected number, got {}".format(type(args[i])))
         if not args[i] > args[i+1]:
             return False
@@ -133,7 +133,7 @@ def mal_greater_or_equal(*args):
     for i in range(len(args)-1):
         if not isinstance(args[i], int):
             return mtype.Error("ArgError",
-                               "Wrong type argument: "
+                               "'>=': Wrong type argument: "
                                "expected number, got {}".format(type(args[i])))
         if not args[i] >= args[i+1]:
             return False
@@ -141,6 +141,29 @@ def mal_greater_or_equal(*args):
 
 
 # list / vector functions
+def mal_cons(obj, lst):
+    if isinstance(lst, mtype.Vector):
+        lst = lst.value
+    if not isinstance(lst, list):
+        return mtype.Error("ArgError", "'cons': Wrong type argument: "
+                           "expected list or vector, got {}".format(type(lst)))
+    return [obj] + lst
+
+
+def mal_concat(*args):
+    res = []
+    for arg in args:
+        if isinstance(arg, mtype.Vector):
+            res.extend(arg.value)
+        elif isinstance(arg, list):
+            res.extend(arg)
+        else:
+            return mtype.Error("ArgError", "'concat': Wrong type argument: "
+                               "expected list or vector, got {}".format(type(args[i])))
+
+    return res
+
+
 def mal_list(*args):
     return list(args)
 
@@ -157,7 +180,7 @@ def mal_emptyp(arg):
         arg = arg.value
     if not isinstance(arg, list):
         return mtype.Error("ArgError",
-                           "Wrong type argument: "
+                           "'empty?': Wrong type argument: "
                            "expected list or vector, got {}".format(type(arg)))
 
     if arg == []:
@@ -173,7 +196,7 @@ def mal_count(arg):
         arg = arg.value
     if not isinstance(arg, list):
         return mtype.Error("ArgError",
-                           "Wrong type argument: "
+                           "'count': Wrong type argument: "
                            "expected list or vector, got {}".format(type(arg)))
 
     return len(arg)
@@ -249,6 +272,8 @@ ns = {'+':           mtype.Builtin(mal_add),
       '>':           mtype.Builtin(mal_greater),
       '>=':          mtype.Builtin(mal_greater_or_equal),
 
+      'cons':        mtype.Builtin(mal_cons),
+      'concat':      mtype.Builtin(mal_concat),
       'list':        mtype.Builtin(mal_list),
       'list?':       mtype.Builtin(mal_listp),
       'empty?':      mtype.Builtin(mal_emptyp),

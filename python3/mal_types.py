@@ -54,6 +54,15 @@ class Vector(MalType):
 
         return val1 == val2
 
+    def __len__(self):
+        return len(self.value)
+
+    def __contains__(self, x):
+        return x in self.value
+
+    def __getitem__(self, x):
+        return self.value[x]
+
 
 class Symbol(MalType):
     """Mal symbol type."""
