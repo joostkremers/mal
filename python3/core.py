@@ -1,5 +1,6 @@
 import mal_types as mtype
 import printer
+import reader
 
 
 # Arithmetic functions
@@ -205,30 +206,39 @@ def mal_println(*args):
     return mtype.Nil()
 
 
-def mal_props(arg):
-    print(arg.__repr__)
-    return mtype.Nil()
+# file functions
+
+
+def mal_slurp(filename):
+    try:
+        f = open(filename, 'r')
+        conts = f.read()
+    except FileNotFoundError:
+        return mtype.Error("FileError", "File not found")
+    return conts
 
 
 # core namespace
-ns = {'+':       mtype.Builtin(mal_add),
-      '-':       mtype.Builtin(mal_substract),
-      '*':       mtype.Builtin(mal_multiply),
-      '/':       mtype.Builtin(mal_divide),
+ns = {'+':           mtype.Builtin(mal_add),
+      '-':           mtype.Builtin(mal_substract),
+      '*':           mtype.Builtin(mal_multiply),
+      '/':           mtype.Builtin(mal_divide),
 
-      '=':       mtype.Builtin(mal_equal),
-      '<':       mtype.Builtin(mal_less),
-      '<=':      mtype.Builtin(mal_less_or_equal),
-      '>':       mtype.Builtin(mal_greater),
-      '>=':      mtype.Builtin(mal_greater_or_equal),
+      '=':           mtype.Builtin(mal_equal),
+      '<':           mtype.Builtin(mal_less),
+      '<=':          mtype.Builtin(mal_less_or_equal),
+      '>':           mtype.Builtin(mal_greater),
+      '>=':          mtype.Builtin(mal_greater_or_equal),
 
-      'list':    mtype.Builtin(mal_list),
-      'list?':   mtype.Builtin(mal_listp),
-      'empty?':  mtype.Builtin(mal_emptyp),
-      'count':   mtype.Builtin(mal_count),
+      'list':        mtype.Builtin(mal_list),
+      'list?':       mtype.Builtin(mal_listp),
+      'empty?':      mtype.Builtin(mal_emptyp),
+      'count':       mtype.Builtin(mal_count),
 
-      'pr-str':  mtype.Builtin(mal_pr_str),
-      'str':     mtype.Builtin(mal_str),
-      'prn':     mtype.Builtin(mal_prn),
-      'println': mtype.Builtin(mal_println),
-      'props':   mtype.Builtin(mal_props)}
+      'pr-str':      mtype.Builtin(mal_pr_str),
+      'str':         mtype.Builtin(mal_str),
+      'prn':         mtype.Builtin(mal_prn),
+      'println':     mtype.Builtin(mal_println),
+
+      'read-string': mtype.Builtin(reader.read_str),
+      'slurp':       mtype.Builtin(mal_slurp)}

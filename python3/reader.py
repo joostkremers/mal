@@ -36,7 +36,8 @@ class Reader:
 reader_macros = {"'": "quote",
                  "`": "quasiquote",
                  "~": "unquote",
-                 "~@": "splice-unquote"}
+                 "~@": "splice-unquote",
+                 "@": "deref"}
 
 
 def read_str(input_str):
