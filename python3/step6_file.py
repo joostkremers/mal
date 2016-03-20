@@ -1,4 +1,8 @@
+# System imports
 import readline  # so input() uses editable input
+import sys
+
+# Local imports
 import reader
 import printer
 import mal_types as mtype
@@ -187,7 +191,7 @@ def rep(line, env):
     return PRINT(result)
 
 
-def Mal():
+def Mal(args=[]):
     print("MAL in Python3 v6.0")
     print("Based on Make-a-Lisp")
     print("Copyright (c) 2016 Joost Kremers")
@@ -203,12 +207,19 @@ def Mal():
     repl_env.set("eval", mtype.Builtin(mal_eval))
     repl_env.set("swap!", mtype.Builtin(mal_swap))
 
+    # Add the command line arguments to repl_env:
+    repl_env.set("*ARGV*", list(args[1:]))
+
     # Add a language-defined 'not' function:
     rep("(def! not (fn* (a) (if a false true)))", repl_env)
 
     # Add a 'load-file' function:
     rep("(def! load-file (fn* (f)"
         "(eval (read-string (str \"(do \" (slurp f) \")\")))))", repl_env)
+
+    if len(args) >= 1:
+        rep("(load-file {})".format(args[0]), repl_env)
+        sys.exit(0)
 
     while True:
         try:
@@ -223,4 +234,4 @@ def Mal():
         print(result)
 
 if __name__ == '__main__':
-    Mal()
+    Mal(sys.argv[1:])
