@@ -162,10 +162,23 @@ def eval_list(ast, env):
     return res
 
 
-# mal_eval is defined here and not in core.py because it calls EVAL.
+# These builtins are defined here and not in core.py because they call EVAL:
 def mal_eval(ast):
     global repl_env
     return EVAL(ast, repl_env)
+
+
+def mal_swap(atom, fn, *args):
+    global repl_env
+
+    if not isinstance(atom, mtype.Atom):
+        return mtype.Error("TypeError",
+                           "Expected atom, received {}".format(type(atom)))
+
+    call_list = [fn, atom.value] + list(args)
+    evalled = EVAL(call_list, repl_env)
+    atom.set(evalled)
+    return evalled
 
 
 def rep(line, env):
@@ -186,7 +199,9 @@ def Mal():
     for sym in core.ns:
         repl_env.set(sym, core.ns[sym])
 
+    # Add eval and swap! to repl_env:
     repl_env.set("eval", mtype.Builtin(mal_eval))
+    repl_env.set("swap!", mtype.Builtin(mal_swap))
 
     # Add a language-defined 'not' function:
     rep("(def! not (fn* (a) (if a false true)))", repl_env)

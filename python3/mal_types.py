@@ -129,3 +129,19 @@ class Function(MalType):
 
     def __str__(self):
         return "#<User function>"
+
+
+class Atom(MalType):
+    """Mal atom type."""
+
+    def __init__(self, value=None):
+        if value is None:
+            self.value = Nil()
+        else:
+            self.value = value
+
+    def set(self, value):
+        self.value = value
+
+    def __str__(self):
+        return '(atom ' + self.value.__str__() + ')'

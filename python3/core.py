@@ -4,8 +4,6 @@ import reader
 
 
 # Arithmetic functions
-
-
 def mal_add(*args):
     """Sum numbers.
 
@@ -89,8 +87,6 @@ def mal_divide(*args):
 
 
 # comparison functions
-
-
 def mal_equal(*args):
     first = args[0]
     for arg in args[1:]:
@@ -145,8 +141,6 @@ def mal_greater_or_equal(*args):
 
 
 # list / vector functions
-
-
 def mal_list(*args):
     return list(args)
 
@@ -186,8 +180,6 @@ def mal_count(arg):
 
 
 # printing functions
-
-
 def mal_pr_str(*args):
     return " ".join([printer.pr_str(arg, True) for arg in args])
 
@@ -207,8 +199,6 @@ def mal_println(*args):
 
 
 # file functions
-
-
 def mal_slurp(filename):
     try:
         f = open(filename, 'r')
@@ -216,6 +206,35 @@ def mal_slurp(filename):
     except FileNotFoundError:
         return mtype.Error("FileError", "File not found")
     return conts
+
+
+# atom functions
+def mal_atom(object):
+    return mtype.Atom(object)
+
+
+def mal_atomp(object):
+    if isinstance(object, mtype.Atom):
+        return True
+    else:
+        return False
+
+
+def mal_deref(atom):
+    if not isinstance(atom, mtype.Atom):
+        return mtype.Error("TypeError",
+                           "Expected atom, received {}".format(type(atom)))
+    else:
+        return atom.value
+
+
+def mal_reset(atom, value):
+    if not isinstance(atom, mtype.Atom):
+        return mtype.Error("TypeError",
+                           "Expected atom, received {}".format(type(atom)))
+    else:
+        atom.set(value)
+        return value
 
 
 # core namespace
@@ -241,4 +260,9 @@ ns = {'+':           mtype.Builtin(mal_add),
       'println':     mtype.Builtin(mal_println),
 
       'read-string': mtype.Builtin(reader.read_str),
-      'slurp':       mtype.Builtin(mal_slurp)}
+      'slurp':       mtype.Builtin(mal_slurp),
+
+      'atom':        mtype.Builtin(mal_atom),
+      'atom?':       mtype.Builtin(mal_atomp),
+      'deref':       mtype.Builtin(mal_deref),
+      'reset!':      mtype.Builtin(mal_reset)}
