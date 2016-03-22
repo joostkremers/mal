@@ -165,10 +165,11 @@ def mal_concat(*args):
 
 
 def mal_nth(arg, index):
+    # import pdb; pdb.set_trace()
     if not isinstance(arg, (list, mtype.Vector)):
         return mtype.Error("ArgError", "'nth': Wrong type argument:"
                            "expected list or vector, received {}".format(type(arg)))
-    if index > len(arg):
+    if index >= len(arg):
         return mtype.Error("IndexError", "Index out of range")
 
     return arg[index]
@@ -190,8 +191,8 @@ def mal_rest(arg):
         return mtype.Error("ArgError", "'nth': Wrong type argument:"
                            "expected list or vector, received {}".format(type(arg)))
 
-    if isinstance(arg, mtype.Nil) or len(arg) == 0:
-        return mtype.Nil()
+    if isinstance(arg, mtype.Nil):
+        return []
 
     return arg[1:]
 

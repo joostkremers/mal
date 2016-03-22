@@ -82,7 +82,8 @@ def EVAL(ast, env):
 # Special forms
 def mal_def(environment, symbol, value):
     evalled = EVAL(value, environment)
-    environment.set(symbol.name, evalled)
+    if not isinstance(evalled, mtype.Error):
+        environment.set(symbol.name, evalled)
     return evalled
 
 
@@ -90,7 +91,8 @@ def mal_defmacro(environment, symbol, value):
     evalled = EVAL(value, environment)
     if isinstance(evalled, mtype.Function):
         evalled.is_macro = True
-    environment.set(symbol.name, evalled)
+    if not isinstance(evalled, mtype.Error):
+        environment.set(symbol.name, evalled)
     return evalled
 
 
