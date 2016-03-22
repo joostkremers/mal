@@ -164,6 +164,38 @@ def mal_concat(*args):
     return res
 
 
+def mal_nth(arg, index):
+    if not isinstance(arg, (list, mtype.Vector)):
+        return mtype.Error("ArgError", "'nth': Wrong type argument:"
+                           "expected list or vector, received {}".format(type(arg)))
+    if index > len(arg):
+        return mtype.Error("IndexError", "Index out of range")
+
+    return arg[index]
+
+
+def mal_first(arg):
+    if not isinstance(arg, (list, mtype.Vector, mtype.Nil)):
+        return mtype.Error("ArgError", "'nth': Wrong type argument:"
+                           "expected list or vector, received {}".format(type(arg)))
+
+    if isinstance(arg, mtype.Nil) or len(arg) == 0:
+        return mtype.Nil()
+
+    return arg[0]
+
+
+def mal_rest(arg):
+    if not isinstance(arg, (list, mtype.Vector, mtype.Nil)):
+        return mtype.Error("ArgError", "'nth': Wrong type argument:"
+                           "expected list or vector, received {}".format(type(arg)))
+
+    if isinstance(arg, mtype.Nil) or len(arg) == 0:
+        return mtype.Nil()
+
+    return arg[1:]
+
+
 def mal_list(*args):
     return list(args)
 
@@ -282,6 +314,9 @@ ns = {'+':           mtype.Builtin(mal_add),
 
       'cons':        mtype.Builtin(mal_cons),
       'concat':      mtype.Builtin(mal_concat),
+      'nth':         mtype.Builtin(mal_nth),
+      'first':       mtype.Builtin(mal_first),
+      'rest':        mtype.Builtin(mal_rest),
       'list':        mtype.Builtin(mal_list),
       'list?':       mtype.Builtin(mal_listp),
       'empty?':      mtype.Builtin(mal_emptyp),
