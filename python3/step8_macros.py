@@ -290,19 +290,25 @@ def Mal(args=[]):
 
     # Add a 'load-file' function:
     rep("(def! load-file (fn* (f)"
-        "(eval (read-string (str \"(do \" (slurp f) \")\")))))", repl_env)
+        "  (eval (read-string (str \"(do \" (slurp f) \")\")))))", repl_env)
 
     # Add 'cond' and 'or'
     rep("(defmacro! cond (fn* (& xs)"
-        "(if (> (count xs) 0)"
-        "(list 'if (first xs) (if (> (count xs) 1)"
-        "(nth xs 1)"
-        "(throw \"odd number of forms to cond\"))"
-        "(cons 'cond (rest (rest xs)))))))", repl_env)
+        "  (if (> (count xs) 0)"
+        "       (list 'if (first xs)"
+        "          (if (> (count xs) 1)"
+        "               (nth xs 1)"
+        "             (throw \"odd number of forms to cond\"))"
+        "          (cons 'cond (rest (rest xs)))))))", repl_env)
     rep("(defmacro! or (fn* (& xs)"
-        "(if (empty? xs) nil (if (= 1 (count xs)) (first xs)"
-        "`(let* (or_FIXME ~(first xs))"
-        "(if or_FIXME or_FIXME (or ~@(rest xs))))))))", repl_env)
+        "  (if (empty? xs)"
+        "       nil"
+        "     (if (= 1 (count xs))"
+        "          (first xs)"
+        "        `(let* (or_FIXME ~(first xs))"
+        "           (if or_FIXME"
+        "                or_FIXME"
+        "              (or ~@(rest xs))))))))", repl_env)
 
     if len(args) >= 1:
         rep("(load-file {})".format(args[0]), repl_env)
