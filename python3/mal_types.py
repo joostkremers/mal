@@ -124,20 +124,26 @@ class Builtin(MalType):
         self.fn = fn
 
     def __str__(self):
-        return "#<Builtin function>"
+        return "#<Builtin function at {}>".format(hex(id(self)))
 
 
 class Function(MalType):
     """Mal function type."""
 
-    def __init__(self, fn=None, params=None, ast=None, env=None):
+    def __init__(self, fn=None, params=None, ast=None, env=None,
+                 is_macro=False):
         self.fn = fn
         self.params = params
         self.ast = ast
         self.env = env
+        self.is_macro = is_macro
 
     def __str__(self):
-        return "#<User function>"
+        if self.is_macro:
+            fn_type = "macro"
+        else:
+            fn_type = "funcion"
+        return "#<User {} at {}>".format(fn_type, hex(id(self)))
 
 
 class Atom(MalType):

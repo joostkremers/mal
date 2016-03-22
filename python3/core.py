@@ -221,6 +221,14 @@ def mal_println(*args):
     return mtype.Nil()
 
 
+def mal_descr(fn):
+    if not isinstance(fn, mtype.Function):
+        return mtype.Error("ArgError",
+                           "'descr': Wrong type argument: "
+                           "expected function, received {}".format(type(fn)))
+    return fn.ast.__str__()
+
+
 # file functions
 def mal_slurp(filename):
     try:
@@ -283,6 +291,8 @@ ns = {'+':           mtype.Builtin(mal_add),
       'str':         mtype.Builtin(mal_str),
       'prn':         mtype.Builtin(mal_prn),
       'println':     mtype.Builtin(mal_println),
+
+      'descr':       mtype.Builtin(mal_descr),
 
       'read-string': mtype.Builtin(reader.read_str),
       'slurp':       mtype.Builtin(mal_slurp),
