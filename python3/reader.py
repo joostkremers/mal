@@ -94,7 +94,7 @@ def read_sequence(form, token):
         if token == '':  # We've reached the end of FORM.
             return mtype.Error("ParenError", "Missing closing parenthesis")
         next_form = read_form(form)
-        if isinstance(next_form, mtype.Error):
+        if type(next_form) is mtype.Error:
             return next_form
 
         res.append(next_form)
@@ -113,10 +113,9 @@ def read_sequence(form, token):
 def create_hash(items):
     """Create a hash table from ITEMS."""
 
-    # Hash tables in Mal can have strings or keywords as keys. MalString and
-    # MalKeyword are hashable, so there's no need to use a rare Unicode
-    # character as prefix in order to distinguish them, as suggested in the
-    # mal_guide.
+    # Hash tables in Mal can have strings or keywords as keys. MalKeyword are
+    # hashable, so there's no need to use a rare Unicode character as prefix in
+    # order to distinguish them from strings, as suggested in the mal_guide.
 
     if (len(items) % 2) != 0:
         return mtype.Error("HashError", "Insufficient number of items")
@@ -124,6 +123,9 @@ def create_hash(items):
     res = {}
     for i in range(0, len(items), 2):
         key = items[i]
+        if not isinstance(key, (str, mtype.Keyword)):
+            return mtype.Error("HashError",
+                               "Cannot hash on {}".format(type(key)))
         value = items[i+1]
         res[key] = value
     return res
@@ -131,7 +133,7 @@ def create_hash(items):
 
 def apply_reader_macro(form, token):
     next_form = read_form(form)
-    if isinstance(next_form, mtype.Error):
+    if type(next_form) is mtype.Error:
         return next_form
     replacement = mtype.Symbol(reader_macros[token])
     return [replacement, next_form]

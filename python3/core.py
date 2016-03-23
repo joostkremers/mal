@@ -98,7 +98,7 @@ def mal_equal(*args):
 
 def mal_less(*args):
     for i in range(len(args)-1):
-        if not isinstance(args[i], int):
+        if type(args[i]) is not int:
             return mtype.Error("ArgError",
                                "Wrong type argument: "
                                "expected number, got {}".format(type(args[i])))
@@ -109,7 +109,7 @@ def mal_less(*args):
 
 def mal_less_or_equal(*args):
     for i in range(len(args)-1):
-        if not isinstance(args[i], int):
+        if type(args[i]) is not int:
             return mtype.Error("ArgError",
                                "'<=': Wrong type argument: "
                                "expected number, got {}".format(type(args[i])))
@@ -120,7 +120,7 @@ def mal_less_or_equal(*args):
 
 def mal_greater(*args):
     for i in range(len(args)-1):
-        if not isinstance(args[i], int):
+        if type(args[i]) is not int:
             return mtype.Error("ArgError",
                                "'>': Wrong type argument: "
                                "expected number, got {}".format(type(args[i])))
@@ -131,7 +131,7 @@ def mal_greater(*args):
 
 def mal_greater_or_equal(*args):
     for i in range(len(args)-1):
-        if not isinstance(args[i], int):
+        if type(args[i]) is not int:
             return mtype.Error("ArgError",
                                "'>=': Wrong type argument: "
                                "expected number, got {}".format(type(args[i])))
@@ -142,9 +142,9 @@ def mal_greater_or_equal(*args):
 
 # list / vector functions
 def mal_cons(obj, lst):
-    if isinstance(lst, mtype.Vector):
+    if type(lst) is mtype.Vector:
         lst = lst.value
-    if not isinstance(lst, list):
+    if type(lst) is not list:
         return mtype.Error("ArgError", "'cons': Wrong type argument: "
                            "expected list or vector, got {}".format(type(lst)))
     return [obj] + lst
@@ -153,22 +153,23 @@ def mal_cons(obj, lst):
 def mal_concat(*args):
     res = []
     for arg in args:
-        if isinstance(arg, mtype.Vector):
+        if type(arg) is mtype.Vector:
             res.extend(arg.value)
-        elif isinstance(arg, list):
+        elif type(arg) is list:
             res.extend(arg)
         else:
             return mtype.Error("ArgError", "'concat': Wrong type argument: "
-                               "expected list or vector, got {}".format(type(args[i])))
+                               "expected list or vector, got {}".
+                               format(type(arg)))
 
     return res
 
 
 def mal_nth(arg, index):
-    # import pdb; pdb.set_trace()
     if not isinstance(arg, (list, mtype.Vector)):
         return mtype.Error("ArgError", "'nth': Wrong type argument:"
-                           "expected list or vector, received {}".format(type(arg)))
+                           "expected list or vector, received {}".
+                           format(type(arg)))
     if index >= len(arg):
         return mtype.Error("IndexError", "Index out of range")
 
@@ -178,9 +179,10 @@ def mal_nth(arg, index):
 def mal_first(arg):
     if not isinstance(arg, (list, mtype.Vector, mtype.Nil)):
         return mtype.Error("ArgError", "'nth': Wrong type argument:"
-                           "expected list or vector, received {}".format(type(arg)))
+                           "expected list or vector, received {}".
+                           format(type(arg)))
 
-    if isinstance(arg, mtype.Nil) or len(arg) == 0:
+    if type(arg) is mtype.Nil or len(arg) == 0:
         return mtype.Nil()
 
     return arg[0]
@@ -189,9 +191,10 @@ def mal_first(arg):
 def mal_rest(arg):
     if not isinstance(arg, (list, mtype.Vector, mtype.Nil)):
         return mtype.Error("ArgError", "'nth': Wrong type argument:"
-                           "expected list or vector, received {}".format(type(arg)))
+                           "expected list or vector, received {}".
+                           format(type(arg)))
 
-    if isinstance(arg, mtype.Nil):
+    if type(arg) is mtype.Nil:
         return []
 
     return arg[1:]
@@ -202,16 +205,16 @@ def mal_list(*args):
 
 
 def mal_listp(arg):
-    if isinstance(arg, list):
+    if type(arg) is list:
         return True
     else:
         return False
 
 
 def mal_emptyp(arg):
-    if isinstance(arg, mtype.Vector):
+    if type(arg) is mtype.Vector:
         arg = arg.value
-    if not isinstance(arg, list):
+    if type(arg) is not list:
         return mtype.Error("ArgError",
                            "'empty?': Wrong type argument: "
                            "expected list or vector, got {}".format(type(arg)))
@@ -223,11 +226,11 @@ def mal_emptyp(arg):
 
 
 def mal_count(arg):
-    if isinstance(arg, mtype.Nil):
+    if type(arg) is mtype.Nil:
         return 0
-    if isinstance(arg, mtype.Vector):
+    if type(arg) is mtype.Vector:
         arg = arg.value
-    if not isinstance(arg, list):
+    if type(arg) is not list:
         return mtype.Error("ArgError",
                            "'count': Wrong type argument: "
                            "expected list or vector, got {}".format(type(arg)))
@@ -255,7 +258,7 @@ def mal_println(*args):
 
 
 def mal_descr(fn):
-    if not isinstance(fn, mtype.Function):
+    if type(fn) is not mtype.Function:
         return mtype.Error("ArgError",
                            "'descr': Wrong type argument: "
                            "expected function, received {}".format(type(fn)))
@@ -278,14 +281,14 @@ def mal_atom(object):
 
 
 def mal_atomp(object):
-    if isinstance(object, mtype.Atom):
+    if type(object) is mtype.Atom:
         return True
     else:
         return False
 
 
 def mal_deref(atom):
-    if not isinstance(atom, mtype.Atom):
+    if type(atom) is not mtype.Atom:
         return mtype.Error("TypeError",
                            "Expected atom, received {}".format(type(atom)))
     else:
@@ -293,12 +296,182 @@ def mal_deref(atom):
 
 
 def mal_reset(atom, value):
-    if not isinstance(atom, mtype.Atom):
+    if type(atom) is not mtype.Atom:
         return mtype.Error("TypeError",
                            "Expected atom, received {}".format(type(atom)))
     else:
         atom.set(value)
         return value
+
+
+# throw
+def mal_throw(arg):
+    return mtype.Error("UserError", arg)
+
+
+# functional functions
+def mal_apply(fn, *args):
+    if not isinstance(fn, (mtype.Builtin, mtype.Function)):
+        return mtype.Error("TypeError", "Expected function,"
+                           " received {}".format(type(args[-1])))
+
+    lastarg = args[-1]
+    if type(lastarg) is mtype.Vector:
+        lastarg = lastarg.value
+
+    if not isinstance(lastarg, list):
+        return mtype.Error("TypeError", "Expected list or vector,"
+                           " received {}".format(type(args[-1])))
+
+    allargs = list(args[:-1]) + lastarg
+
+    return fn.fn(*allargs)
+
+
+def mal_map(fn, lst):
+    if not isinstance(fn, (mtype.Builtin, mtype.Function)):
+        return mtype.Error("TypeError", "Expected function,"
+                           " received {}".format(type(fn)))
+
+    if type(lst) is mtype.Vector:
+        lst = lst.value
+    if type(lst) is not list:
+        return mtype.Error("TypeError", "Expected list or vector,"
+                           " received {}".format(type(lst)))
+
+    res = []
+    for elem in lst:
+        evalled = fn.fn(elem)
+        if type(evalled) is mtype.Error:
+            return evalled
+        res.append(evalled)
+
+    return res
+
+
+# type predicates
+def mal_nilp(arg):
+    return (type(arg) is mtype.Nil)
+
+
+def mal_truep(arg):
+    return (arg is True)
+
+
+def mal_falsep(arg):
+    return (arg is False)
+
+
+def mal_symbol(arg):
+    if type(arg) is not str:
+        return mtype.Error("TypeError",
+                           "Wrong type argument:"
+                           " expected string, received {}".format(type(arg)))
+    return mtype.Symbol(arg)
+
+
+def mal_symbolp(arg):
+    return (type(arg) is mtype.Symbol)
+
+
+def mal_keyword(arg):
+    if type(arg) is mtype.Keyword:
+        return arg
+    if type(arg) is not str:
+        return mtype.Error("TypeError",
+                           "Wrong type argument:"
+                           " expected string, received {}".format(type(arg)))
+    return mtype.Keyword(arg)
+
+
+def mal_keywordp(arg):
+    return (type(arg) is mtype.Keyword)
+
+
+def mal_vector(*args):
+    return mtype.Vector(list(args))
+
+
+def mal_vectorp(arg):
+    return (type(arg) is mtype.Vector)
+
+
+def mal_mapp(arg):
+    return (type(arg) is dict)
+
+
+def mal_sequentialp(arg):
+    return isinstance(arg, (list, mtype.Vector))
+
+
+# hash functions
+def mal_hashmap(*args):
+    return reader.create_hash(args)
+
+
+def mal_assoc(hashmap, *args):
+    if type(hashmap) is not dict:
+        return mtype.Error("TypeError",
+                           "Wrong type argument:"
+                           " expected hash, received {}".format(type(hashmap)))
+    orig = hashmap.copy()
+
+    new = reader.create_hash(list(args))
+    if type(new) is mtype.Error:
+        return new
+
+    orig.update(new)
+    return orig
+
+
+def mal_dissoc(hashmap, *keys):
+    if type(hashmap) is not dict:
+        return mtype.Error("TypeError",
+                           "Wrong type argument:"
+                           " expected hash, received {}".format(type(hashmap)))
+
+    new = hashmap.copy()
+    for key in keys:
+        new.pop(key, None)
+
+    return new
+
+
+def mal_get(hashmap, key):
+    if hashmap == mtype.Nil():
+        hashmap = {}
+    if type(hashmap) is not dict:
+        return mtype.Error("TypeError",
+                           "Wrong type argument:"
+                           " expected hash, received {}".format(type(hashmap)))
+    if key in hashmap:
+        return hashmap[key]
+    else:
+        return mtype.Nil()
+
+
+def mal_containsp(hashmap, key):
+    if type(hashmap) is not dict:
+        return mtype.Error("TypeError",
+                           "Wrong type argument:"
+                           " expected hash, received {}".format(type(hashmap)))
+    return (key in hashmap)
+
+
+def mal_keys(hashmap):
+    if type(hashmap) is not dict:
+        return mtype.Error("TypeError",
+                           "Wrong type argument:"
+                           " expected hash, received {}".format(type(hashmap)))
+    return list(hashmap.keys())
+
+
+def mal_vals(hashmap):
+    if type(hashmap) is not dict:
+        return mtype.Error("TypeError",
+                           "Wrong type argument:"
+                           " expected hash, received {}".format(type(hashmap)))
+    return list(hashmap.values())
 
 
 # core namespace
@@ -336,4 +509,29 @@ ns = {'+':           mtype.Builtin(mal_add),
       'atom':        mtype.Builtin(mal_atom),
       'atom?':       mtype.Builtin(mal_atomp),
       'deref':       mtype.Builtin(mal_deref),
-      'reset!':      mtype.Builtin(mal_reset)}
+      'reset!':      mtype.Builtin(mal_reset),
+
+      'throw':       mtype.Builtin(mal_throw),
+
+      'apply':       mtype.Builtin(mal_apply),
+      'map':         mtype.Builtin(mal_map),
+
+      'nil?':        mtype.Builtin(mal_nilp),
+      'true?':       mtype.Builtin(mal_truep),
+      'false?':      mtype.Builtin(mal_falsep),
+      'symbol':      mtype.Builtin(mal_symbol),
+      'symbol?':     mtype.Builtin(mal_symbolp),
+      'keyword':     mtype.Builtin(mal_keyword),
+      'keyword?':    mtype.Builtin(mal_keywordp),
+      'vector':      mtype.Builtin(mal_vector),
+      'vector?':     mtype.Builtin(mal_vectorp),
+      'map?':        mtype.Builtin(mal_mapp),
+      'sequential?': mtype.Builtin(mal_sequentialp),
+
+      'hash-map':    mtype.Builtin(mal_hashmap),
+      'assoc':       mtype.Builtin(mal_assoc),
+      'dissoc':      mtype.Builtin(mal_dissoc),
+      'get':         mtype.Builtin(mal_get),
+      'contains?':   mtype.Builtin(mal_containsp),
+      'keys':        mtype.Builtin(mal_keys),
+      'vals':        mtype.Builtin(mal_vals)}

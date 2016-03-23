@@ -43,11 +43,11 @@ class Vector(MalType):
         return '[' + ' '.join(items) + ']'
 
     def __eq__(self, other):
-        if isinstance(self, Vector):
+        if type(self) is Vector:
             val1 = self.value
         else:
             val1 = self
-        if isinstance(other, Vector):
+        if type(other) is Vector:
             val2 = other.value
         else:
             val2 = other
@@ -83,7 +83,11 @@ class Symbol(MalType):
 
 
 class Error(MalType):
-    """Mal error type."""
+    """Mal error type.
+
+    Errors are returned as normal values, but they halt evaluation and are
+    immediately returned to the top level.
+    """
 
     def __init__(self, error_type, descr):
         self.error = error_type
@@ -99,10 +103,29 @@ class Error(MalType):
                 self.descr == other.descr)
 
 
+class HandledError(Error):
+    """Mal handled error type.
+
+    Errors handled by 'try*/catch*' are passed as handled errors, so that they
+    do not halt evaluation.
+    """
+
+    def __init__(self, error_object):
+        self.error = error_object.error
+        self.descr = error_object.descr
+
+
 class Keyword(MalType):
-    """Mal keyword type."""
+    """Mal keyword type. """
 
     def __init__(self, name):
+        """Create a keyword.
+
+        Keywords are strings that start with a colon. If NAME does not start
+        with a colon, one is added.
+        """
+        if name[0] != ":":
+            name = ':' + name
         self.name = name
 
     def __eq__(self, other):
