@@ -349,8 +349,8 @@ def Mal(args=[]):
         "             (or ~@(rest xs)))))))))", repl_env)
 
     if len(args) >= 1:
-        rep("(load-file {})".format(args[0]), repl_env)
-        sys.exit(0)
+        rep('(load-file "{}")'.format(args[0]), repl_env)
+        return
 
     rep("(println (str \"Mal [\" *host-language* \"]\"))", repl_env)
 
