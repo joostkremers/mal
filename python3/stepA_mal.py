@@ -38,9 +38,9 @@ def EVAL(ast, env):
                 symbol = ast[0].name
                 # Special forms
                 if symbol == "def!":
-                    return mal_def(env, ast[1], ast[2])
+                    return mal_def(env, ast[1:])
                 elif symbol == "defmacro!":
-                    return mal_defmacro(env, ast[1], ast[2])
+                    return mal_defmacro(env, ast[1:])
                 elif symbol == "try*":
                     catch = ast[2]
                     if not (catch[0].name == "catch*"):
@@ -100,14 +100,26 @@ def EVAL(ast, env):
 
 
 # Special forms
-def mal_def(environment, symbol, value):
+def mal_def(environment, ast):
+    if len(ast) != 2:
+        return mtype.Error("ArgError",
+                           "'def!' requires 2 arguments, "
+                           "received {}".format(len(ast)))
+    symbol = ast[0]
+    value = ast[1]
     evalled = EVAL(value, environment)
     if type(evalled) is not mtype.Error:
         environment.set(symbol.name, evalled)
     return evalled
 
 
-def mal_defmacro(environment, symbol, value):
+def mal_defmacro(environment, ast):
+    if len(ast) != 2:
+        return mtype.Error("ArgError",
+                           "'defmacro!' requires 2 arguments, "
+                           "received {}".format(len(ast)))
+    symbol = ast[0]
+    value = ast[1]
     evalled = EVAL(value, environment)
     if type(evalled) is mtype.Function:
         evalled.is_macro = True
