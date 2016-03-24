@@ -70,6 +70,8 @@ def read_form(form):
     token = form.next()
     if token in ['(', '[', '{']:
         return read_sequence(form, token)
+    elif token == '^':  # with-meta reader macro
+        return apply_with_meta_macro(form)
     elif token in reader_macros:
         return apply_reader_macro(form, token)
     elif token == '':
@@ -129,6 +131,16 @@ def create_hash(items):
         value = items[i+1]
         res[key] = value
     return res
+
+
+def apply_with_meta_macro(form):
+    data = read_form(form)
+    if type(data) is mtype.Error:
+        return data
+    obj = read_form(form)
+    if type(obj) is mtype.Error:
+        return obj
+    return [mtype.Symbol('with-meta'), obj, data]
 
 
 def apply_reader_macro(form, token):

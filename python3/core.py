@@ -1,3 +1,7 @@
+import copy
+import time
+import numbers
+
 import mal_types as mtype
 import printer
 import reader
@@ -98,7 +102,7 @@ def mal_equal(*args):
 
 def mal_less(*args):
     for i in range(len(args)-1):
-        if type(args[i]) is not int:
+        if not isinstance(args[i], numbers.Number):
             return mtype.Error("ArgError",
                                "Wrong type argument: "
                                "expected number, got {}".format(type(args[i])))
@@ -109,7 +113,7 @@ def mal_less(*args):
 
 def mal_less_or_equal(*args):
     for i in range(len(args)-1):
-        if type(args[i]) is not int:
+        if not isinstance(args[i], numbers.Number):
             return mtype.Error("ArgError",
                                "'<=': Wrong type argument: "
                                "expected number, got {}".format(type(args[i])))
@@ -120,7 +124,7 @@ def mal_less_or_equal(*args):
 
 def mal_greater(*args):
     for i in range(len(args)-1):
-        if type(args[i]) is not int:
+        if not isinstance(args[i], numbers.Number):
             return mtype.Error("ArgError",
                                "'>': Wrong type argument: "
                                "expected number, got {}".format(type(args[i])))
@@ -131,7 +135,7 @@ def mal_greater(*args):
 
 def mal_greater_or_equal(*args):
     for i in range(len(args)-1):
-        if type(args[i]) is not int:
+        if not isinstance(args[i], numbers.Number):
             return mtype.Error("ArgError",
                                "'>=': Wrong type argument: "
                                "expected number, got {}".format(type(args[i])))
@@ -163,6 +167,25 @@ def mal_concat(*args):
                                format(type(arg)))
 
     return res
+
+
+def mal_conj(seq, *elems):
+    """Add ELEMS to SEQ (a list or vector).
+
+    If SEQ is a list, the elements in ELEMS are added to the front of the list
+    in reverse order. If SEQ is a vector, the elements are added to the end.
+
+    """
+    if not isinstance(seq, (list, mtype.Vector)):
+        return mtype.Error("ArgError", "'conj': Wrong type argument:"
+                           "expected list or vector, received {}".
+                           format(type(seq)))
+
+    if type(seq) is list:
+        return list(elems)[::-1] + seq
+
+    if type(seq) is mtype.Vector:
+        return mtype.Vector(seq.value + list(elems))
 
 
 def mal_nth(arg, index):
@@ -257,14 +280,6 @@ def mal_println(*args):
     return mtype.Nil()
 
 
-def mal_descr(fn):
-    if type(fn) is not mtype.Function:
-        return mtype.Error("ArgError",
-                           "'descr': Wrong type argument: "
-                           "expected function, received {}".format(type(fn)))
-    return fn.ast.__str__()
-
-
 # file functions
 def mal_slurp(filename):
     try:
@@ -273,6 +288,15 @@ def mal_slurp(filename):
     except FileNotFoundError:
         return mtype.Error("FileError", "File not found")
     return conts
+
+
+# readline
+def mal_readline(prompt):
+    try:
+        line = input(prompt)
+    except EOFError:
+        return mtype.Nil()
+    return line
 
 
 # atom functions
@@ -349,6 +373,57 @@ def mal_map(fn, lst):
     return res
 
 
+# type functions
+def mal_symbol(arg):
+    if type(arg) is not str:
+        return mtype.Error("TypeError",
+                           "Wrong type argument: "
+                           "expected string, received {}".format(type(arg)))
+    return mtype.Symbol(arg)
+
+
+def mal_keyword(arg):
+    if type(arg) is mtype.Keyword:
+        return arg
+    if type(arg) is not str:
+        return mtype.Error("TypeError",
+                           "Wrong type argument: "
+                           "expected string, received {}".format(type(arg)))
+    return mtype.Keyword(arg)
+
+
+def mal_vector(*args):
+    return mtype.Vector(list(args))
+
+
+def mal_seq(arg):
+    """Turn ARG into a list.
+
+    If ARG is nil or an empty list, vector or string, return nil. If ARG is a
+    non-empty list, return it unchanged; if ARG is a non-empty vector, convert
+    it to a list; if ARG is a non-empty string, return a list of characters.
+
+    """
+    if type(arg) is mtype.Nil:
+        return mtype.Nil()
+
+    if len(arg) == 0:
+        return mtype.Nil()
+
+    if type(arg) is list:
+        return arg
+
+    if type(arg) is mtype.Vector:
+        return arg.value
+
+    if type(arg) is str:
+        return list(arg)
+
+    # if all fails, return an error
+    return mtype.Error("ArgError", "'seq': Wrong type argument: "
+                       "expected sequence, received {}".format(type(arg)))
+
+
 # type predicates
 def mal_nilp(arg):
     return (type(arg) is mtype.Nil)
@@ -362,34 +437,12 @@ def mal_falsep(arg):
     return (arg is False)
 
 
-def mal_symbol(arg):
-    if type(arg) is not str:
-        return mtype.Error("TypeError",
-                           "Wrong type argument:"
-                           " expected string, received {}".format(type(arg)))
-    return mtype.Symbol(arg)
-
-
 def mal_symbolp(arg):
     return (type(arg) is mtype.Symbol)
 
 
-def mal_keyword(arg):
-    if type(arg) is mtype.Keyword:
-        return arg
-    if type(arg) is not str:
-        return mtype.Error("TypeError",
-                           "Wrong type argument:"
-                           " expected string, received {}".format(type(arg)))
-    return mtype.Keyword(arg)
-
-
 def mal_keywordp(arg):
     return (type(arg) is mtype.Keyword)
-
-
-def mal_vector(*args):
-    return mtype.Vector(list(args))
 
 
 def mal_vectorp(arg):
@@ -402,6 +455,10 @@ def mal_mapp(arg):
 
 def mal_sequentialp(arg):
     return isinstance(arg, (list, mtype.Vector))
+
+
+def mal_stringp(arg):
+    return (type(arg) is str)
 
 
 # hash functions
@@ -474,6 +531,35 @@ def mal_vals(hashmap):
     return list(hashmap.values())
 
 
+# metadata
+def mal_meta(obj):
+    try:
+        data = obj.meta
+    except AttributeError:
+        return mtype.Nil()
+    return data
+
+
+def mal_with_meta(obj, data):
+    new_obj = copy.copy(obj)
+    try:
+        new_obj.meta = data
+    except AttributeError:
+        return obj
+    return new_obj
+
+
+# time
+def mal_time_ms():
+    """Return the current time as miliseconds since the epoch.
+
+    Note that depending on the system, this function may only provide an
+    accuracy of 1 second.
+
+    """
+    return time.time() * 1000
+
+
 # core namespace
 ns = {'+':           mtype.Builtin(mal_add),
       '-':           mtype.Builtin(mal_substract),
@@ -488,6 +574,7 @@ ns = {'+':           mtype.Builtin(mal_add),
 
       'cons':        mtype.Builtin(mal_cons),
       'concat':      mtype.Builtin(mal_concat),
+      'conj':        mtype.Builtin(mal_conj),
       'nth':         mtype.Builtin(mal_nth),
       'first':       mtype.Builtin(mal_first),
       'rest':        mtype.Builtin(mal_rest),
@@ -501,10 +588,10 @@ ns = {'+':           mtype.Builtin(mal_add),
       'prn':         mtype.Builtin(mal_prn),
       'println':     mtype.Builtin(mal_println),
 
-      'descr':       mtype.Builtin(mal_descr),
-
       'read-string': mtype.Builtin(reader.read_str),
       'slurp':       mtype.Builtin(mal_slurp),
+
+      'readline':    mtype.Builtin(mal_readline),
 
       'atom':        mtype.Builtin(mal_atom),
       'atom?':       mtype.Builtin(mal_atomp),
@@ -516,17 +603,20 @@ ns = {'+':           mtype.Builtin(mal_add),
       'apply':       mtype.Builtin(mal_apply),
       'map':         mtype.Builtin(mal_map),
 
+      'symbol':      mtype.Builtin(mal_symbol),
+      'keyword':     mtype.Builtin(mal_keyword),
+      'vector':      mtype.Builtin(mal_vector),
+      'seq':         mtype.Builtin(mal_seq),
+
       'nil?':        mtype.Builtin(mal_nilp),
       'true?':       mtype.Builtin(mal_truep),
       'false?':      mtype.Builtin(mal_falsep),
-      'symbol':      mtype.Builtin(mal_symbol),
       'symbol?':     mtype.Builtin(mal_symbolp),
-      'keyword':     mtype.Builtin(mal_keyword),
       'keyword?':    mtype.Builtin(mal_keywordp),
-      'vector':      mtype.Builtin(mal_vector),
       'vector?':     mtype.Builtin(mal_vectorp),
       'map?':        mtype.Builtin(mal_mapp),
       'sequential?': mtype.Builtin(mal_sequentialp),
+      'string?':     mtype.Builtin(mal_stringp),
 
       'hash-map':    mtype.Builtin(mal_hashmap),
       'assoc':       mtype.Builtin(mal_assoc),
@@ -534,4 +624,9 @@ ns = {'+':           mtype.Builtin(mal_add),
       'get':         mtype.Builtin(mal_get),
       'contains?':   mtype.Builtin(mal_containsp),
       'keys':        mtype.Builtin(mal_keys),
-      'vals':        mtype.Builtin(mal_vals)}
+      'vals':        mtype.Builtin(mal_vals),
+
+      'meta':        mtype.Builtin(mal_meta),
+      'with-meta':   mtype.Builtin(mal_with_meta),
+
+      'time-ms':     mtype.Builtin(mal_time_ms)}

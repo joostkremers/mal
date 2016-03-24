@@ -154,12 +154,16 @@ class Function(MalType):
     """Mal function type."""
 
     def __init__(self, fn=None, params=None, ast=None, env=None,
-                 is_macro=False):
+                 is_macro=False, meta=None):
         self.fn = fn
         self.params = params
         self.ast = ast
         self.env = env
         self.is_macro = is_macro
+        if meta is None:
+            self.meta = Nil()
+        else:
+            self.meta = meta
 
     def __str__(self):
         if self.is_macro:
@@ -182,4 +186,4 @@ class Atom(MalType):
         self.value = value
 
     def __str__(self):
-        return '(atom ' + self.value.__str__() + ')'
+        return '<atom object at {}>'.format(hex(id(self)))
