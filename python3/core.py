@@ -430,7 +430,10 @@ def mal_nilp(arg):
 
 
 def mal_truep(arg):
-    return (arg is True)
+    if arg in [[], "", mtype.Vector([]), mtype.Nil()] or arg is False:
+        return False
+    else:
+        return True
 
 
 def mal_falsep(arg):

@@ -159,7 +159,7 @@ def mal_if(environment, args):
                            "received {}".format(len(args)))
 
     condition = EVAL(args[0], environment)
-    if (condition is not False) and (type(condition) is not mtype.Nil):
+    if core.mal_truep(condition):
         return args[1]
     else:
         if len(args) == 3:
