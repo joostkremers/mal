@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # System imports
 import readline  # so input() uses editable input
 import sys
