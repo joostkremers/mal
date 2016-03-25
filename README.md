@@ -6,7 +6,7 @@
 
 Mal is a Clojure inspired Lisp interpreter.
 
-Mal is implemented in 49 languages:
+Mal is implemented in 50 languages:
 
 * GNU awk
 * Bash shell
@@ -40,6 +40,7 @@ Mal is implemented in 49 languages:
 * MATLAB
 * [miniMAL](https://github.com/kanaka/miniMAL)
 * Nim
+* Object Pascal
 * Objective C
 * OCaml
 * Perl
@@ -466,6 +467,17 @@ nimble build
 ./stepX_YYY
 ```
 
+### Object Pascal
+
+The Object Pascal implementation of mal has been built and tested on
+Linux using the Free Pascal compiler version 2.6.2 and 2.6.4.
+
+```
+cd objpascal
+make
+./stepX_YYY
+```
+
 ### Objective C
 
 The Objective C implementation of mal has been built and tested on
@@ -684,7 +696,7 @@ mono ./stepX_YYY.exe
 
 ### Functional tests
 
-The are nearly 500 generic functional tests (for all implementations)
+The are over 600 generic functional tests (for all implementations)
 in the `tests/` directory. Each step has a corresponding test file
 containing tests specific to that step. The `runtest.py` test harness
 launches a Mal step implementation and then feeds the tests one at
