@@ -27,8 +27,9 @@ def pr_str(obj, print_readably=False):
         return string
 
     elif isinstance(obj, MalError):
-        return (pr_str(obj.error, print_readably) + ": " +
-                pr_str(obj.descr, print_readably))
+        # return (pr_str(obj.error, print_readably) + ": " +
+        #         pr_str(obj.descr, print_readably))
+        return pr_str(obj.descr, print_readably)
 
     # If none of the above:
     else:
