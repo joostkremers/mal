@@ -1,4 +1,4 @@
-import mal_types as mtype
+from mal_types import *
 
 
 def pr_str(obj, print_readably=False):
@@ -6,15 +6,9 @@ def pr_str(obj, print_readably=False):
         str_list = [pr_str(s, print_readably) for s in obj]
         return '(' + ' '.join(str_list) + ')'
 
-    elif type(obj) is mtype.Vector:
+    elif type(obj) is MalVector:
         str_list = [pr_str(s, print_readably) for s in obj.value]
         return '[' + ' '.join(str_list) + ']'
-
-    elif type(obj) is bool:
-        if obj is True:
-            return "true"
-        else:
-            return "false"
 
     elif type(obj) is dict:
         str_list = []
@@ -32,7 +26,7 @@ def pr_str(obj, print_readably=False):
             string = '"' + string + '"'
         return string
 
-    elif isinstance(obj, mtype.Error):
+    elif isinstance(obj, MalError):
         return (pr_str(obj.error, print_readably) + ": " +
                 pr_str(obj.descr, print_readably))
 

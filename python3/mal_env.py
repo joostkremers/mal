@@ -1,4 +1,4 @@
-import mal_types as mtype
+from mal_types import *
 
 
 class MalEnv():
@@ -19,7 +19,7 @@ class MalEnv():
             self.data = data
 
         for i in range(len(binds)):
-            if type(binds[i]) is mtype.Symbol:
+            if type(binds[i]) is MalSymbol:
                 sym = binds[i].name
             else:
                 sym = binds[i]
@@ -34,21 +34,21 @@ class MalEnv():
                 if i < len(exprs):
                     val = exprs[i]
                 else:
-                    val = mtype.Nil()
+                    val = MalNil()
 
             self.set(sym, val)
 
     def set(self, symbol, value):
-        if type(symbol) is mtype.Symbol:
+        if type(symbol) is MalSymbol:
             symbol = symbol.name
         if type(symbol) is str:
             self.data[symbol] = value
             return value
         else:
-            return mtype.Error("TypeError", "Cannot bind to non-symbol")
+            return MalError("TypeError", "Cannot bind to non-symbol")
 
     def find(self, symbol):
-        if type(symbol) is mtype.Symbol:
+        if type(symbol) is MalSymbol:
             symbol = symbol.name
         if symbol in self.data:
             return self
@@ -58,11 +58,11 @@ class MalEnv():
             return self.outer.find(symbol)
 
     def get(self, symbol):
-        if type(symbol) is mtype.Symbol:
+        if type(symbol) is MalSymbol:
             symbol = symbol.name
         env = self.find(symbol)
         if env:
             return env.data[symbol]
         else:
-            return mtype.Error("SymbolError",
-                               "Symbol value is void '{}'".format(symbol))
+            return MalError("SymbolError",
+                            "Symbol value is void '{}'".format(symbol))

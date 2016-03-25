@@ -7,7 +7,7 @@ import sys
 # Local imports
 import reader
 import printer
-import mal_types as mtype
+from mal_types import *
 import mal_env as menv
 import core
 
@@ -20,7 +20,7 @@ def READ(line):
 
 def EVAL(ast, env):
     while True:
-        if type(ast) is mtype.Error:
+        if type(ast) is MalError:
             return ast
         elif type(ast) is not list:
             return eval_ast(ast, env)
@@ -34,7 +34,7 @@ def EVAL(ast, env):
                 return eval_ast(ast, env)
 
             # apply
-            if type(ast[0]) is mtype.Symbol:
+            if type(ast[0]) is MalSymbol:
                 symbol = ast[0].name
                 # Special forms
                 if symbol == "def!":
@@ -44,14 +44,14 @@ def EVAL(ast, env):
                 elif symbol == "try*":
                     catch = ast[2]
                     if not (catch[0].name == "catch*"):
-                        return mtype.Error("TryError",
-                                           "Failing 'catch*' clause")
+                        return MalError("TryError",
+                                        "Failing 'catch*' clause")
 
                     A = EVAL(ast[1], env)
-                    if type(A) is mtype.Error:
+                    if type(A) is MalError:
                         # The error is wrapped in a HandledError instance, so
                         # that evaluation is not halted.
-                        A = mtype.HandledError(A)
+                        A = MalHandledError(A)
                         B = catch[1]
                         C = catch[2]
                         env = menv.MalEnv(outer=env, binds=[B], exprs=[A])
@@ -64,7 +64,7 @@ def EVAL(ast, env):
                     continue
                 elif symbol == "do":
                     evalled = eval_ast(ast[1:-1], env)
-                    if type(evalled) is mtype.Error:
+                    if type(evalled) is MalError:
                         return evalled
                     ast = ast[-1]
                     continue
@@ -84,67 +84,67 @@ def EVAL(ast, env):
         # If the list does not start with a symbol or if the symbol is not a
         # special form, we evaluate and apply:
         evalled = eval_ast(ast, env)
-        if type(evalled) is mtype.Error:
+        if type(evalled) is MalError:
             return evalled
-        elif type(evalled[0]) is mtype.Builtin:
+        elif type(evalled[0]) is MalBuiltin:
             return evalled[0].fn(*evalled[1:])
-        elif type(evalled[0]) is mtype.Function:
+        elif type(evalled[0]) is MalFunction:
             ast = evalled[0].ast
             env = menv.MalEnv(outer=evalled[0].env,
                               binds=evalled[0].params,
                               exprs=evalled[1:])
             continue
         else:
-            return mtype.Error("ApplyError",
-                               "'{}' is not callable".format(evalled[0]))
+            return MalError("ApplyError",
+                            "'{}' is not callable".format(evalled[0]))
 
 
 # Special forms
 def mal_def(environment, ast):
     if len(ast) != 2:
-        return mtype.Error("ArgError",
-                           "'def!' requires 2 arguments, "
-                           "received {}".format(len(ast)))
+        return MalError("ArgError",
+                        "'def!' requires 2 arguments, "
+                        "received {}".format(len(ast)))
     symbol = ast[0]
     value = ast[1]
     evalled = EVAL(value, environment)
-    if type(evalled) is not mtype.Error:
+    if type(evalled) is not MalError:
         environment.set(symbol.name, evalled)
     return evalled
 
 
 def mal_defmacro(environment, ast):
     if len(ast) != 2:
-        return mtype.Error("ArgError",
-                           "'defmacro!' requires 2 arguments, "
-                           "received {}".format(len(ast)))
+        return MalError("ArgError",
+                        "'defmacro!' requires 2 arguments, "
+                        "received {}".format(len(ast)))
     symbol = ast[0]
     value = ast[1]
     evalled = EVAL(value, environment)
-    if type(evalled) is mtype.Function:
+    if type(evalled) is MalFunction:
         evalled.is_macro = True
-    if type(evalled) is not mtype.Error:
+    if type(evalled) is not MalError:
         environment.set(symbol.name, evalled)
     return evalled
 
 
 def mal_let(environment, bindings, body):
-    if not isinstance(bindings, (list, mtype.Vector)):
-        return (mtype.Error("LetError", "Invalid bind form"), None)
+    if not isinstance(bindings, (list, MalVector)):
+        return (MalError("LetError", "Invalid bind form"), None)
     if (len(bindings) % 2 != 0):
-        return (mtype.Error("LetError", "Insufficient bind forms"), None)
+        return (MalError("LetError", "Insufficient bind forms"), None)
 
     new_env = menv.MalEnv(outer=environment)
-    # Note: bindings may be a list or an mtype.Vector.
-    if type(bindings) is mtype.Vector:
+    # Note: bindings may be a list or an MalVector.
+    if type(bindings) is MalVector:
         bindings = bindings.value
     for i in range(0, len(bindings), 2):
-        if type(bindings[i]) is not mtype.Symbol:
-            return (mtype.Error("LetError", "Attempt to bind to non-symbol"),
+        if type(bindings[i]) is not MalSymbol:
+            return (MalError("LetError", "Attempt to bind to non-symbol"),
                     None)
 
         evalled = EVAL(bindings[i+1], new_env)
-        if type(evalled) is mtype.Error:
+        if type(evalled) is MalError:
             return (evalled, None)
 
         new_env.set(bindings[i].name, evalled)
@@ -154,39 +154,39 @@ def mal_let(environment, bindings, body):
 
 def mal_if(environment, args):
     if len(args) < 2:
-        return mtype.Error("ArgError",
-                           "'if' requires 2-3 arguments, "
-                           "received {}".format(len(args)))
+        return MalError("ArgError",
+                        "'if' requires 2-3 arguments, "
+                        "received {}".format(len(args)))
 
     condition = EVAL(args[0], environment)
-    if core.mal_truep(condition):
+    if not (condition == MalNil() or condition == MalBoolean(False)):
         return args[1]
     else:
         if len(args) == 3:
             return args[2]
         else:
-            return mtype.Nil()
+            return MalNil()
 
 
 def mal_fn(environment, syms, body):
-    if type(syms) is mtype.Vector:
+    if type(syms) is MalVector:
         syms = syms.value
 
     if '&' in syms:
         if syms.index('&') != len(syms) - 2:
-            return mtype.Error("BindsError", "Illegal binds list")
+            return MalError("BindsError", "Illegal binds list")
 
     def mal_closure(*params):
         new_env = menv.MalEnv(outer=environment, binds=syms, exprs=params)
         return EVAL(body, new_env)
 
-    return mtype.Function(mal_closure, syms, body, environment)
+    return MalFunction(mal_closure, syms, body, environment)
 
 
 def is_pair(arg):
     """Return True if ARG is a non-empty list or vector."""
 
-    if isinstance(arg, (list, mtype.Vector)) and len(arg) > 0:
+    if isinstance(arg, (list, MalVector)) and len(arg) > 0:
         return True
     else:
         return False
@@ -195,24 +195,24 @@ def is_pair(arg):
 def mal_quasiquote(ast):
     # not a list (or empty list)
     if not is_pair(ast):
-        return list((mtype.Symbol("quote"), ast))
+        return list((MalSymbol("quote"), ast))
 
     # unquote
-    elif type(ast[0]) is mtype.Symbol and ast[0].name == "unquote":
+    elif type(ast[0]) is MalSymbol and ast[0].name == "unquote":
         return ast[1]
 
     # splice-unquote
     elif (is_pair(ast[0]) and
-          type(ast[0][0]) is mtype.Symbol and
+          type(ast[0][0]) is MalSymbol and
           ast[0][0].name == "splice-unquote"):
-        first = mtype. Symbol("concat")
+        first = MalSymbol("concat")
         second = ast[0][1]
         rest = mal_quasiquote(ast[1:])
         return list((first, second, rest))
 
     # otherwise
     else:
-        first = mtype.Symbol("cons")
+        first = MalSymbol("cons")
         second = mal_quasiquote(ast[0])
         rest = mal_quasiquote(ast[1:])
         return list((first, second, rest))
@@ -221,11 +221,11 @@ def mal_quasiquote(ast):
 def is_macro_call(ast, env):
     if type(ast) is not list:
         return False
-    if type(ast[0]) is not mtype.Symbol:
+    if type(ast[0]) is not MalSymbol:
         return False
 
     fn = env.get(ast[0].name)
-    if type(fn) is mtype.Function:
+    if type(fn) is MalFunction:
         return fn.is_macro
     else:
         return False
@@ -243,20 +243,20 @@ def PRINT(data):
 
 
 def eval_ast(ast, env):
-    if type(ast) is mtype.Symbol:
+    if type(ast) is MalSymbol:
         return env.get(ast.name)
 
     elif type(ast) is list:
         return eval_list(ast, env)
 
-    elif type(ast) is mtype.Vector:
-        return mtype.Vector(eval_list(ast.value, env))
+    elif type(ast) is MalVector:
+        return MalVector(eval_list(ast.value, env))
 
     elif type(ast) is dict:
         res = {}
         for key, val in ast.items():
             newval = EVAL(val, env)
-            if type(newval) is mtype.Error:
+            if type(newval) is MalError:
                 return newval
             res[key] = newval
         return res
@@ -269,7 +269,7 @@ def eval_list(ast, env):
     res = []
     for elem in ast:
         val = EVAL(elem, env)
-        if type(val) is mtype.Error:
+        if type(val) is MalError:
             return val
         res.append(val)
     return res
@@ -284,9 +284,9 @@ def mal_eval(ast):
 def mal_swap(atom, fn, *args):
     global repl_env
 
-    if type(atom) is not mtype.Atom:
-        return mtype.Error("TypeError",
-                           "Expected atom, received {}".format(type(atom)))
+    if type(atom) is not MalAtom:
+        return MalError("TypeError",
+                        "Expected atom, received {}".format(type(atom)))
 
     evalled = fn.fn(atom.value, *args)
     atom.set(evalled)
@@ -307,8 +307,8 @@ def Mal(args=[]):
         repl_env.set(sym, core.ns[sym])
 
     # Add eval and swap! to repl_env:
-    repl_env.set("eval", mtype.Builtin(mal_eval))
-    repl_env.set("swap!", mtype.Builtin(mal_swap))
+    repl_env.set("eval", MalBuiltin(mal_eval))
+    repl_env.set("swap!", MalBuiltin(mal_swap))
 
     # Add the command line arguments to repl_env:
     repl_env.set("*ARGV*", list(args[1:]))

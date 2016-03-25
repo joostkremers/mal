@@ -1,6 +1,6 @@
 # coding=utf-8
 import re
-import mal_types as mtype
+from mal_types import *
 
 
 class Reader:
@@ -75,7 +75,7 @@ def read_form(form):
     elif token in reader_macros:
         return apply_reader_macro(form, token)
     elif token == '':
-        return mtype.MalType("comment")
+        return MalType("comment")
     else:
         return read_atom(token)
 
@@ -94,9 +94,9 @@ def read_sequence(form, token):
         if token == end_token:  # We've found the end of the list.
             break
         if token == '':  # We've reached the end of FORM.
-            return mtype.Error("ParenError", "Missing closing parenthesis")
+            return MalError("ParenError", "Missing closing parenthesis")
         next_form = read_form(form)
-        if type(next_form) is mtype.Error:
+        if type(next_form) is MalError:
             return next_form
 
         res.append(next_form)
@@ -109,7 +109,7 @@ def read_sequence(form, token):
     elif end_token == '}':
         return create_hash(res)
     else:
-        return mtype.Vector(res)
+        return MalVector(res)
 
 
 def create_hash(items):
@@ -120,14 +120,14 @@ def create_hash(items):
     # order to distinguish them from strings, as suggested in the mal_guide.
 
     if (len(items) % 2) != 0:
-        return mtype.Error("HashError", "Insufficient number of items")
+        return MalError("HashError", "Insufficient number of items")
 
     res = {}
     for i in range(0, len(items), 2):
         key = items[i]
-        if not isinstance(key, (str, mtype.Keyword)):
-            return mtype.Error("HashError",
-                               "Cannot hash on {}".format(type(key)))
+        if not isinstance(key, (str, MalKeyword)):
+            return MalError("HashError",
+                            "Cannot hash on {}".format(type(key)))
         value = items[i+1]
         res[key] = value
     return res
@@ -135,19 +135,19 @@ def create_hash(items):
 
 def apply_with_meta_macro(form):
     data = read_form(form)
-    if type(data) is mtype.Error:
+    if type(data) is MalError:
         return data
     obj = read_form(form)
-    if type(obj) is mtype.Error:
+    if type(obj) is MalError:
         return obj
-    return [mtype.Symbol('with-meta'), obj, data]
+    return [MalSymbol('with-meta'), obj, data]
 
 
 def apply_reader_macro(form, token):
     next_form = read_form(form)
-    if type(next_form) is mtype.Error:
+    if type(next_form) is MalError:
         return next_form
-    replacement = mtype.Symbol(reader_macros[token])
+    replacement = MalSymbol(reader_macros[token])
     return [replacement, next_form]
 
 
@@ -166,26 +166,26 @@ def read_atom(token):
 
     # keywords
     if re.match(r'\A:.*\Z', token):
-        return mtype.Keyword(token)
+        return MalKeyword(token)
 
     # boolean
     if token == "true":
-        return True
+        return MalBoolean(True)
     if token == "false":
-        return False
+        return MalBoolean(False)
 
     # nil
     if token == "nil":
-        return mtype.Nil()
+        return MalNil()
 
     # symbols
     if re.match(r"[^\s\[\]{}('\"`,;)]*", token):
-        return mtype.Symbol(token)
+        return MalSymbol(token)
 
     # Found nothing parsable. (Shouldn't really happen, since symbols are a
     # catch-all already.)
-    return mtype.Error("ParseError", "Could not parse token: '{}'".
-                       format(token))
+    return MalError("ParseError", "Could not parse token: '{}'".
+                    format(token))
 
 
 def main():
