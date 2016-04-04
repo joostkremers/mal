@@ -6,8 +6,9 @@
 
 Mal is a Clojure inspired Lisp interpreter.
 
-Mal is implemented in 49 languages:
+Mal is implemented in 51 languages:
 
+* Ada
 * GNU awk
 * Bash shell
 * C
@@ -40,6 +41,7 @@ Mal is implemented in 49 languages:
 * MATLAB
 * [miniMAL](https://github.com/kanaka/miniMAL)
 * Nim
+* Object Pascal
 * Objective C
 * OCaml
 * Perl
@@ -105,6 +107,21 @@ make DOCKERIZE=1 "repl^IMPL^stepX"
 make DOCKERIZE=1 "repl^IMPL"
 ```
 
+
+### Ada
+
+*The Ada implementation was created by [Chris Moore](https://github.com/zmower)*
+
+The Ada implementation was developed with GNAT 4.9 on debian. It also
+compiles unchanged on windows if you have windows versions of git,
+GNAT and (optionally) make.  There are no external dependencies
+(readline not implemented).
+
+```
+cd ada
+make
+./stepX_YYY
+```
 
 ### GNU awk
 
@@ -466,6 +483,17 @@ nimble build
 ./stepX_YYY
 ```
 
+### Object Pascal
+
+The Object Pascal implementation of mal has been built and tested on
+Linux using the Free Pascal compiler version 2.6.2 and 2.6.4.
+
+```
+cd objpascal
+make
+./stepX_YYY
+```
+
 ### Objective C
 
 The Objective C implementation of mal has been built and tested on
@@ -684,7 +712,7 @@ mono ./stepX_YYY.exe
 
 ### Functional tests
 
-The are nearly 500 generic functional tests (for all implementations)
+The are over 600 generic functional tests (for all implementations)
 in the `tests/` directory. Each step has a corresponding test file
 containing tests specific to that step. The `runtest.py` test harness
 launches a Mal step implementation and then feeds the tests one at
