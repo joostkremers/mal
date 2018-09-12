@@ -1,6 +1,7 @@
 package mal;
 
 import java.io.Console;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -8,10 +9,19 @@ import java.util.regex.Pattern;
 
 import mal.types.MalError;
 import mal.types.MalList;
+import mal.types.MalSequence;
 import mal.types.MalType;
+import mal.types.MalVector;
 
 public class reader {
   static Console console = System.console();
+
+  static private HashMap<String, String> delims;
+  static {
+    delims = new HashMap<String, String>();
+    delims.put("(", ")");
+    delims.put("[", "]");
+  }
 
   public static class Reader {
     List<String> tokens = new LinkedList<>();
@@ -20,7 +30,7 @@ public class reader {
     public Reader(List<String> tokens) {
       this.tokens = tokens;
     }
-    
+
     public String peek() {
       if (position < tokens.size())
         return tokens.get(position);
@@ -52,7 +62,7 @@ public class reader {
     }
 
     console.format("Tokenized input: %s%n", tokenizedInput);
-    
+
     return tokenizedInput;
   }
 
@@ -70,10 +80,11 @@ public class reader {
     item = inputForm.peek();
 
     console.format("Item: %s%n", item);
-    
+
     if (item != null) {
       switch (item) {
       case "(":
+      case "[":
         result = read_list(inputForm);
         break;
 
@@ -86,27 +97,36 @@ public class reader {
   }
 
   private static MalType read_list(Reader inputForm) {
-    MalList result = new types.MalList();
+    MalSequence result;
     String item;
 
-    inputForm.next(); // Move past the list's opening parenthesis.
+    String openingDelim = inputForm.next();
+    String closingDelim = delims.get(openingDelim);
+
+    switch (openingDelim) {
+    case "(": result = new MalList();
+      break;
+    case "[": result = new MalVector();
+      break;
+    default: return new MalError("Not a list delimiter: " + openingDelim);
+    }
 
     while (true) {
       item = inputForm.peek();
 
       console.format("List item: %s%n", item);
-      
-      if (item == null) return new types.MalError("Malformed input: expected \")\", found EOL");
-      if (item.equals(")")) {
+
+      if (item == null) return new MalError("Malformed input: expected «" + closingDelim + "», found EOL");
+      if (item.equals(closingDelim)) {
         inputForm.next(); // Move past the list's closing parenthesis.
         return result;
       }
-      
+
       MalType parsedItem = read_form(inputForm);
       if (parsedItem instanceof MalError) return parsedItem;
       else result.add(parsedItem);
     }
-    
+
     // do {
     //   item = inputForm.peek();
 
@@ -122,7 +142,7 @@ public class reader {
     // if (item == null)  // inputForm was exhausted but no closing parenthesis was found.
     //   return new types.MalError("Malformed input");
     // else {
-      
+
     //   return result;
     }
 

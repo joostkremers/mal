@@ -1,6 +1,8 @@
 package mal;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.StringJoiner;
 
 public class types {
@@ -27,54 +29,64 @@ public class types {
     }
   }
 
-  // Cf. http://www.vogella.com/tutorials/JavaDatastructureList/article.html
-  public static class MalList extends MalType {
-    private int size = 0;
-    private static final int DEFAULT_LENGTH = 10;
-    private MalType items[];
-    
-    public MalList() {
-      items = new MalType[DEFAULT_LENGTH];
+  public static abstract class MalSequence extends MalType {
+    List<MalType> items;
+
+    public List<MalType> get() {
+      return items;
     }
 
     public void add(MalType e) {
-      if (size == items.length) {
-        ensureCapacity();
-      }
-      items[size++] = e;
+      items.add(e);
     }
 
-    private void ensureCapacity() {
-      int newSize = size * 2;
-      items = Arrays.copyOf(items, newSize);
-    }
-
-    // This is needed so that MalList can extend MalType. As an alternative, we
-    // might return the instance itself, or implement `get` in MalType.
-    public MalType get() {
-      return null;
-    }
-    
     public MalType get(int i) {
-      if (i >= size || i < 0) {
-        throw new IndexOutOfBoundsException("(MalList) Index out of Bounds: " + i + "(" + size + ")");
-      }
-      return items[i];
+      return items.get(i);
+    }
+  }
+
+  public static class MalList extends MalSequence {
+    public MalList() {
+      items = new LinkedList<MalType>();
     }
 
     public String pr_str() {
       StringJoiner result = new StringJoiner(" ", "(", ")");
 
-      for(int i = 0; i < size; i++) {
-        result.add(items[i].pr_str());
+      for(MalType item : items) {
+        result.add(item.pr_str());
       }
 
       return result.toString();
     }
   }
-  
+
+  public static class MalVector extends MalSequence {
+    public MalVector() {
+      items = new ArrayList<MalType>();
+    }
+
+    public void add(MalType e) {
+      items.add(e);
+    }
+
+    public MalType get(int i) {
+      return items.get(i);
+    }
+
+    public String pr_str() {
+      StringJoiner result = new StringJoiner(" ", "[", "]");
+
+      for(MalType item : items) {
+        result.add(item.pr_str());
+      }
+
+      return result.toString();
+    }
+  }
+
   public static class MalError extends MalType {
-    String message;
+    private String message;
 
     public MalError(String message) {
       this.message = message;
@@ -90,7 +102,7 @@ public class types {
 }
 
   public static class MalString extends MalType {
-    String value;
+    private String value;
 
     public MalString(String value) {
       this.value = value;
@@ -106,9 +118,9 @@ public class types {
     }
 
   }
-  
+
   public static class MalComment extends MalType {
-    String comment;
+    private String comment;
 
     public MalComment(String comment) {
       this.comment = comment;
@@ -124,7 +136,7 @@ public class types {
   }
 
   public static class MalSymbol extends MalType {
-    String name;
+    private String name;
 
     public MalSymbol(String name) {
       this.name = name;
@@ -142,7 +154,7 @@ public class types {
   public static class MalNil extends MalType {
 
     public MalNil() {
-      // Nothing to do.  
+      // Nothing to do.
     }
 
     public Boolean get() {
@@ -157,7 +169,7 @@ public class types {
   public static class MalFalse extends MalType {
 
     public MalFalse() {
-      // Nothing to do.  
+      // Nothing to do.
     }
 
     public Boolean get() {
@@ -172,7 +184,7 @@ public class types {
   public static class MalTrue extends MalType {
 
     public MalTrue() {
-      // Nothing to do.  
+      // Nothing to do.
     }
 
     public Boolean get() {
