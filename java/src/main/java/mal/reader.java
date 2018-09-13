@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import mal.types.MalComment;
 import mal.types.MalException;
 import mal.types.MalFalse;
 import mal.types.MalInt;
@@ -172,7 +171,7 @@ public class reader {
     if (rxString.matcher(item).matches())
       return new MalString(item);
     else if (rxComment.matcher(item).matches())
-      return new MalComment(item);
+      return new MalNil();
     else if (rxNumber.matcher(item).matches())
       return new MalInt(Integer.parseInt(item));
     else if (item.equals("nil"))

@@ -119,22 +119,6 @@ public class types {
 
   }
 
-  public static class MalComment extends MalType {
-    private String comment;
-
-    public MalComment(String comment) {
-      this.comment = comment;
-    }
-
-    public String get() {
-      return comment;
-    }
-
-    public String pr_str() {
-      return comment;
-    }
-  }
-
   public static class MalSymbol extends MalType {
     private String name;
 
