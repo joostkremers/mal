@@ -181,7 +181,7 @@ public class types {
     }
   }
 
-    public static class MalKeyword extends MalType {
+  public static class MalKeyword extends MalType {
     private String name;
 
     public MalKeyword(String name) {
