@@ -7,9 +7,16 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import mal.types.MalComment;
 import mal.types.MalException;
+import mal.types.MalFalse;
+import mal.types.MalInt;
 import mal.types.MalList;
+import mal.types.MalNil;
 import mal.types.MalSequence;
+import mal.types.MalString;
+import mal.types.MalSymbol;
+import mal.types.MalTrue;
 import mal.types.MalType;
 import mal.types.MalVector;
 
@@ -159,19 +166,19 @@ public class reader {
       rxSymbol = Pattern.compile("[^\\s\\[\\]{}\\('\"`,;\\)]+");
 
     if (rxString.matcher(item).matches())
-      return new types.MalString(item);
+      return new MalString(item);
     else if (rxComment.matcher(item).matches())
-      return new types.MalComment(item);
+      return new MalComment(item);
     else if (rxNumber.matcher(item).matches())
-      return new types.MalInt(Integer.parseInt(item));
+      return new MalInt(Integer.parseInt(item));
     else if (item.equals("nil"))
-      return new types.MalNil();
+      return new MalNil();
     else if (item.equals("false"))
-      return new types.MalFalse();
+      return new MalFalse();
     else if (item.equals("true"))
-      return new types.MalTrue();
+      return new MalTrue();
     else if (rxSymbol.matcher(item).matches())
-      return new types.MalSymbol(item);
+      return new MalSymbol(item);
     else throw new MalException("Unknown token in input string: «" + item + "».");
   }
 }
