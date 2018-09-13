@@ -7,8 +7,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import mal.types.MalBoolean;
 import mal.types.MalException;
-import mal.types.MalFalse;
+import mal.types.MalHash;
 import mal.types.MalInt;
 import mal.types.MalKeyword;
 import mal.types.MalList;
@@ -16,7 +17,6 @@ import mal.types.MalNil;
 import mal.types.MalSequence;
 import mal.types.MalString;
 import mal.types.MalSymbol;
-import mal.types.MalTrue;
 import mal.types.MalType;
 import mal.types.MalVector;
 
@@ -29,6 +29,16 @@ public class reader {
     delims = new HashMap<String, String>();
     delims.put("(", ")");
     delims.put("[", "]");
+  }
+
+  static private HashMap<String, String> readerMacros;
+  static {
+    readerMacros = new HashMap<String, String>();
+    readerMacros.put("@", "deref");
+    readerMacros.put("'", "quote");
+    readerMacros.put("`", "quasiquote");
+    readerMacros.put("~", "unquote");
+    readerMacros.put("~@", "splice-unquote");
   }
 
   public static class Reader {
@@ -56,7 +66,11 @@ public class reader {
     // The regexp is modified a bit so as to require tokens to be consecutive.
     // Not sure if this is really a good idea. Note that I don't actually do
     // anything with this in the while loop.
-    String tokenRegexString = "\\G[\\s,]*(~@|[\\[\\]{}\\(\\)'`~^@]|\"(?:\\.|[^\\\"])*\"|;.*|[^\\s\\[\\]{}\\('\"`,;\\)]+)";
+
+    // Note also that comments aren't tokenized, contrary to what the Mal guide
+    // suggests. This makes it easier to ignore them, especially when they
+    // appear after a form.
+    String tokenRegexString = "\\G(?:[\\s,]*|;.*$)(~@|[\\[\\]{}\\(\\)'`~^@]|\"(?:\\\\.|[^\\\"])*\"|[^\\s\\[\\]{}\\('\"`,;\\)]+)";
     Pattern tokenRegex = Pattern.compile(tokenRegexString);
     Matcher inputMatcher = tokenRegex.matcher(inputLine);
 
@@ -76,13 +90,18 @@ public class reader {
 
   public static MalType read_str(String inputLine) throws MalException {
     Reader tokenized_input;
+    MalType result;
 
     tokenized_input = new Reader(tokenizer(inputLine));
-    return read_form(tokenized_input);
+    result = read_form(tokenized_input);
+
+    if (tokenized_input.peek() != null) throw new MalException("Input contains more than one form");
+
+    return result;
   }
 
   private static MalType read_form(Reader inputForm) throws MalException {
-    MalType result = null;
+    MalType result = new MalNil();
     String item;
 
     item = inputForm.peek();
@@ -96,6 +115,22 @@ public class reader {
         result = read_list(inputForm);
         break;
 
+      case "{":
+        result = read_hash(inputForm);
+        break;
+
+      case "@":
+      case "'":
+      case "`":
+      case "~":
+      case "~@":
+        result = read_macro(inputForm);
+        break;
+
+      case "^":
+        result = read_meta(inputForm);
+        break;
+
       default:
         result = read_atom(inputForm);
         break;
@@ -107,6 +142,7 @@ public class reader {
   private static MalType read_list(Reader inputForm) throws MalException {
     MalSequence result;
     String item;
+    MalType parsedItem;
 
     String openingDelim = inputForm.next();
     String closingDelim = delims.get(openingDelim);
@@ -116,7 +152,7 @@ public class reader {
       break;
     case "[": result = new MalVector();
       break;
-    default: throw new MalException("Not a list delimiter: «" + openingDelim + "».");
+    default: throw new MalException("Not a list delimiter: `" + openingDelim + "'.");
     }
 
     while (true) {
@@ -124,35 +160,76 @@ public class reader {
 
       if (debug) console.format("List item: %s%n", item);
 
-      if (item == null) throw new MalException("Malformed input: expected «" + closingDelim + "», found EOL.");
+      if (item == null) throw new MalException("Malformed input: expected `" + closingDelim + "', found EOL.");
       if (item.equals(closingDelim)) {
         inputForm.next(); // Move past the list's closing parenthesis.
         return result;
       }
-      if (delims.containsValue(item)) throw new MalException("Malfored input; expected «" + closingDelim + "», found + «" + item + "».");
+      if (delims.containsValue(item)) throw new MalException("Malfored input; expected `" + closingDelim + "', found + `" + item + "'.");
 
-      MalType parsedItem = read_form(inputForm);
+      parsedItem = read_form(inputForm);
       result.add(parsedItem);
     }
+  }
 
-    // do {
-    //   item = inputForm.peek();
+  private static MalHash read_hash(Reader inputForm) throws MalException {
+    MalHash result = new MalHash();
+    String key, value;
+    MalType parsedKey, parsedValue;
 
-    //   if (item != null) {
-    //     MalType malItem = read_form(inputForm);
-    //     if (malItem instanceof types.MalError)
-    //       return malItem;
-    //     else result.add(malItem);
-    //     item = inputForm.next();
-    //   }
-    // } while ((item instanceof String) && (item != ")"));
+    inputForm.next();
 
-    // if (item == null)  // inputForm was exhausted but no closing parenthesis was found.
-    //   return new types.MalError("Malformed input");
-    // else {
+    while(true) {
+      key = inputForm.peek();
+      if (key.equals("}")) {
+        inputForm.next(); // Move past the closing brace.
+        return result;
+      }
 
-    //   return result;
+      parsedKey = read_form(inputForm);
+      if (!(parsedKey.getType() == "MalString" || parsedKey.getType() == "MalKeyword"))
+        throw new MalException("Wrong hash key type (" + parsedKey.getType() + ").");
+
+      value = inputForm.peek();
+      if (value.equals("}")) throw new MalException("Odd number of elements in hash map.");
+      parsedValue = read_form(inputForm);
+
+      result.put(parsedKey, parsedValue);
     }
+  }
+
+  private static MalList read_macro(Reader inputForm) throws MalException {
+    MalList result = new MalList();
+
+    String macro = inputForm.next();
+
+    String resolution = readerMacros.get(macro);
+    result.add(new MalSymbol(resolution));
+
+    MalType resolvedForm = read_form(inputForm);
+
+    if (resolvedForm == null) throw new MalException("Incorrect use of reader macro.");
+
+    result.add(resolvedForm);
+
+    return result;
+  }
+
+  private static MalList read_meta(Reader inputForm) throws MalException {
+    MalList result = new MalList();
+
+    result.add(new MalSymbol("with-meta"));
+
+    inputForm.next();
+
+    MalType data = read_form(inputForm);
+    MalType form = read_form(inputForm);
+
+    result.add(form);
+    result.add(data);
+
+    return result;
+  }
 
   private static MalType read_atom(Reader inputForm) throws MalException {
     String item = inputForm.next();
@@ -160,16 +237,14 @@ public class reader {
     if (debug) console.format("Atom: %s%n", item);
 
     Pattern
-      // rxUnquoteSplicing  = Pattern.compile("~@"),
-      // rxSpecialChar  = Pattern.compile("[\\[\\]{}\\(\\)'`~^@]"),
-      rxString = Pattern.compile("\"(?:\\.|[^\\\"])*\""),
+      rxString = Pattern.compile("\"(?:\\\\.|[^\\\"])*\""),
       rxComment = Pattern.compile(";.*"),
       rxNumber = Pattern.compile("[0-9]+"),
       rxKeyword = Pattern.compile(":[^\\s\\[\\]{}\\('\"`,;\\)]+"),
       rxSymbol = Pattern.compile("[^\\s\\[\\]{}\\('\"`,;\\)]+");
 
     if (rxString.matcher(item).matches())
-      return new MalString(item);
+      return new MalString(item.substring(1,item.length()-1));
     else if (rxComment.matcher(item).matches())
       return new MalNil();
     else if (rxNumber.matcher(item).matches())
@@ -177,13 +252,13 @@ public class reader {
     else if (item.equals("nil"))
       return new MalNil();
     else if (item.equals("false"))
-      return new MalFalse();
+      return new MalBoolean(false);
     else if (item.equals("true"))
-      return new MalTrue();
+      return new MalBoolean(false);
     else if (rxKeyword.matcher(item).matches())
       return new MalKeyword(item);
     else if (rxSymbol.matcher(item).matches())
       return new MalSymbol(item);
-    else throw new MalException("Unknown token in input string: «" + item + "».");
+    else throw new MalException("Unknown token in input string: `" + item + "'.");
   }
 }
