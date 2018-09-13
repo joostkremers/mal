@@ -123,7 +123,7 @@ public class reader {
 
       console.format("List item: %s%n", item);
 
-      if (item == null) throw new MalException("Malformed input: expected «" + closingDelim + "», found EOL.t");
+      if (item == null) throw new MalException("Malformed input: expected «" + closingDelim + "», found EOL.");
       if (item.equals(closingDelim)) {
         inputForm.next(); // Move past the list's closing parenthesis.
         return result;
