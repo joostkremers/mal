@@ -1,6 +1,7 @@
 package mal;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringJoiner;
@@ -103,21 +104,41 @@ public class types {
     }
   }
 
-  // public static class MalError extends MalType {
-  //   private String message;
+  public static class MalHash extends MalType {
+    private HashMap<MalType,MalType> map;
 
-  //   public MalError(String message) {
-  //     this.message = message;
-  //   }
+    public MalHash() {
+      map = new HashMap<MalType,MalType>();
+    }
 
-  //   public String get() {
-  //     return message;
-  //   }
+    public void put(MalType k, MalType v) {
+      map.put(k, v);
+    }
 
-  //   public String pr_str() {
-  //     return message;
-  //   }
-  // }
+    public MalType get(MalType k) {
+      return map.get(k);
+    }
+
+    public HashMap get() {
+      return map;
+    }
+
+    public String pr_str() {
+      StringJoiner result = new StringJoiner(", ", "{", "}");
+
+      for (HashMap.Entry<MalType,MalType> entry : map.entrySet()) {
+        MalType key = entry.getKey();
+        MalType value = entry.getValue();
+        result.add(key.pr_str() + " " + value.pr_str());
+      }
+
+      return result.toString();
+    }
+
+    public String getType() {
+      return "MalHash";
+    }
+}
 
   public static class MalString extends MalType {
     private String value;
