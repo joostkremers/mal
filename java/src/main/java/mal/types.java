@@ -214,37 +214,31 @@ public class types {
     public String pr_str() {
       return "nil";
     }
-}
 
-  public static class MalFalse extends MalType {
-
-    public MalFalse() {
-      // Nothing to do.
-    }
-
-    public Boolean get() {
-      return false;
-    }
-
-    public String pr_str() {
-      return "false";
+    public String getType() {
+      return "MalNil";
     }
 }
 
-  public static class MalTrue extends MalType {
+  public static class MalBoolean extends MalType {
+    Boolean value;
 
-    public MalTrue() {
-      // Nothing to do.
+    public MalBoolean(boolean value) {
+      this.value = value;
     }
 
     public Boolean get() {
-      return true;
+      return value;
     }
 
     public String pr_str() {
-      return "true";
+      return value.toString();
     }
-  }
+
+    public String getType() {
+      return "MalBoolean";
+    }
+}
 
   public static class MalException extends Exception {
     private static final long serialVersionUID = 1L;
