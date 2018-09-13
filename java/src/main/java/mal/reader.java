@@ -22,6 +22,7 @@ import mal.types.MalVector;
 
 public class reader {
   static Console console = System.console();
+  static boolean debug = false;
 
   static private HashMap<String, String> delims;
   static {
@@ -68,7 +69,7 @@ public class reader {
       tokenizedInput.add(token);
     }
 
-    console.format("Tokenized input: %s%n", tokenizedInput);
+    if (debug) console.format("Tokenized input: %s%n", tokenizedInput);
 
     return tokenizedInput;
   }
@@ -86,7 +87,7 @@ public class reader {
 
     item = inputForm.peek();
 
-    console.format("Item: %s%n", item);
+    if (debug) console.format("Item: %s%n", item);
 
     if (item != null) {
       switch (item) {
@@ -121,7 +122,7 @@ public class reader {
     while (true) {
       item = inputForm.peek();
 
-      console.format("List item: %s%n", item);
+      if (debug) console.format("List item: %s%n", item);
 
       if (item == null) throw new MalException("Malformed input: expected «" + closingDelim + "», found EOL.");
       if (item.equals(closingDelim)) {
@@ -155,7 +156,7 @@ public class reader {
   private static MalType read_atom(Reader inputForm) throws MalException {
     String item = inputForm.next();
 
-    console.format("Atom: %s%n", item);
+    if (debug) console.format("Atom: %s%n", item);
 
     Pattern
       // rxUnquoteSplicing  = Pattern.compile("~@"),
