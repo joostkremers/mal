@@ -11,6 +11,7 @@ import mal.types.MalComment;
 import mal.types.MalException;
 import mal.types.MalFalse;
 import mal.types.MalInt;
+import mal.types.MalKeyword;
 import mal.types.MalList;
 import mal.types.MalNil;
 import mal.types.MalSequence;
@@ -165,6 +166,7 @@ public class reader {
       rxString = Pattern.compile("\"(?:\\.|[^\\\"])*\""),
       rxComment = Pattern.compile(";.*"),
       rxNumber = Pattern.compile("[0-9]+"),
+      rxKeyword = Pattern.compile(":[^\\s\\[\\]{}\\('\"`,;\\)]+"),
       rxSymbol = Pattern.compile("[^\\s\\[\\]{}\\('\"`,;\\)]+");
 
     if (rxString.matcher(item).matches())
@@ -179,6 +181,8 @@ public class reader {
       return new MalFalse();
     else if (item.equals("true"))
       return new MalTrue();
+    else if (rxKeyword.matcher(item).matches())
+      return new MalKeyword(item);
     else if (rxSymbol.matcher(item).matches())
       return new MalSymbol(item);
     else throw new MalException("Unknown token in input string: «" + item + "».");

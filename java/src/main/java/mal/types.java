@@ -151,6 +151,22 @@ public class types {
     }
   }
 
+    public static class MalKeyword extends MalType {
+    private String name;
+
+    public MalKeyword(String name) {
+      this.name = name;
+    }
+
+    public String get() {
+      return name;
+    }
+
+    public String pr_str() {
+      return name;
+    }
+  }
+
   public static class MalNil extends MalType {
 
     public MalNil() {
