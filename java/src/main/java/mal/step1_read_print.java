@@ -2,6 +2,7 @@ package mal;
 
 import java.io.Console;
 
+import mal.types.MalException;
 import mal.types.MalType;
 
 public class step1_read_print {
@@ -16,13 +17,18 @@ public class step1_read_print {
         break; 
       }
       else {
-        output = rep(input);
+        try {
+          output = rep(input);
+        }
+        catch(MalException ex) {
+          output = "*** Error *** " + ex.getMessage();
+        }
       }
       System.out.println(output);
     }
   }
 
-  public static MalType READ(String arg) {
+  public static MalType READ(String arg) throws MalException {
     return reader.read_str(arg);
   }
 
@@ -34,7 +40,7 @@ public class step1_read_print {
     return printer.pr_str(arg);
   }
 
-  public static String rep(String arg) {
+  public static String rep(String arg) throws MalException {
     String result;
 
     result = PRINT(EVAL(READ(arg)));

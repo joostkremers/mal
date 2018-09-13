@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import mal.types.MalError;
+import mal.types.MalException;
 import mal.types.MalList;
 import mal.types.MalSequence;
 import mal.types.MalType;
@@ -66,14 +66,14 @@ public class reader {
     return tokenizedInput;
   }
 
-  public static MalType read_str(String inputLine) {
+  public static MalType read_str(String inputLine) throws MalException {
     Reader tokenized_input;
 
     tokenized_input = new Reader(tokenizer(inputLine));
     return read_form(tokenized_input);
   }
 
-  private static MalType read_form(Reader inputForm) {
+  private static MalType read_form(Reader inputForm) throws MalException {
     MalType result = null;
     String item;
 
@@ -96,7 +96,7 @@ public class reader {
     return result;
   }
 
-  private static MalType read_list(Reader inputForm) {
+  private static MalType read_list(Reader inputForm) throws MalException {
     MalSequence result;
     String item;
 
@@ -108,7 +108,7 @@ public class reader {
       break;
     case "[": result = new MalVector();
       break;
-    default: return new MalError("Not a list delimiter: " + openingDelim);
+    default: throw new MalException("Not a list delimiter: «" + openingDelim + "».");
     }
 
     while (true) {
@@ -116,15 +116,14 @@ public class reader {
 
       console.format("List item: %s%n", item);
 
-      if (item == null) return new MalError("Malformed input: expected «" + closingDelim + "», found EOL");
+      if (item == null) throw new MalException("Malformed input: expected «" + closingDelim + "», found EOL.t");
       if (item.equals(closingDelim)) {
         inputForm.next(); // Move past the list's closing parenthesis.
         return result;
       }
 
       MalType parsedItem = read_form(inputForm);
-      if (parsedItem instanceof MalError) return parsedItem;
-      else result.add(parsedItem);
+      result.add(parsedItem);
     }
 
     // do {
@@ -146,7 +145,7 @@ public class reader {
     //   return result;
     }
 
-  private static MalType read_atom(Reader inputForm) {
+  private static MalType read_atom(Reader inputForm) throws MalException {
     String item = inputForm.next();
 
     console.format("Atom: %s%n", item);
@@ -173,6 +172,6 @@ public class reader {
       return new types.MalTrue();
     else if (rxSymbol.matcher(item).matches())
       return new types.MalSymbol(item);
-    else return new types.MalError("Unknown token in input string: " + item);
+    else throw new MalException("Unknown token in input string: «" + item + "».");
   }
 }

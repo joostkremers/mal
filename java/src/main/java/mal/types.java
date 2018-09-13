@@ -85,21 +85,21 @@ public class types {
     }
   }
 
-  public static class MalError extends MalType {
-    private String message;
+  // public static class MalError extends MalType {
+  //   private String message;
 
-    public MalError(String message) {
-      this.message = message;
-    }
+  //   public MalError(String message) {
+  //     this.message = message;
+  //   }
 
-    public String get() {
-      return message;
-    }
+  //   public String get() {
+  //     return message;
+  //   }
 
-    public String pr_str() {
-      return message;
-    }
-}
+  //   public String pr_str() {
+  //     return message;
+  //   }
+  // }
 
   public static class MalString extends MalType {
     private String value;
@@ -194,6 +194,13 @@ public class types {
     public String pr_str() {
       return "true";
     }
+  }
 
+  public static class MalException extends Exception {
+    private static final long serialVersionUID = 1L;
+    public MalException() { super(); }
+    public MalException(String message) { super(message); }
+    public MalException(String message, Throwable cause) { super(message, cause); }
+    public MalException(Throwable cause) { super(cause); }
   }
 }
