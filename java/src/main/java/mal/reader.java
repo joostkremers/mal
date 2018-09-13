@@ -129,6 +129,7 @@ public class reader {
         inputForm.next(); // Move past the list's closing parenthesis.
         return result;
       }
+      if (delims.containsValue(item)) throw new MalException("Malfored input; expected «" + closingDelim + "», found + «" + item + "».");
 
       MalType parsedItem = read_form(inputForm);
       result.add(parsedItem);
