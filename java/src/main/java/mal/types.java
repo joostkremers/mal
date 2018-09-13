@@ -11,6 +11,8 @@ public class types {
     public abstract Object get();
 
     public abstract String pr_str();
+
+    public abstract String getType();
   }
 
   public static class MalInt extends MalType {
@@ -26,6 +28,10 @@ public class types {
 
     public String pr_str() {
       return Integer.toString(value);
+    }
+
+    public String getType() {
+      return "MalInt";
     }
   }
 
@@ -43,6 +49,10 @@ public class types {
     public MalType get(int i) {
       return items.get(i);
     }
+
+    public String getType() {
+      return "MalSequence";
+    }
   }
 
   public static class MalList extends MalSequence {
@@ -59,7 +69,11 @@ public class types {
 
       return result.toString();
     }
-  }
+
+      public String getType() {
+      return "MalList";
+    }
+}
 
   public static class MalVector extends MalSequence {
     public MalVector() {
@@ -82,6 +96,10 @@ public class types {
       }
 
       return result.toString();
+    }
+
+    public String getType() {
+      return "MalVector";
     }
   }
 
@@ -117,6 +135,9 @@ public class types {
       return "\"" + value + "\"";
     }
 
+    public String getType() {
+      return "MalString";
+    }
   }
 
   public static class MalSymbol extends MalType {
@@ -133,6 +154,10 @@ public class types {
     public String pr_str() {
       return name;
     }
+
+      public String getType() {
+      return "MalSymbol";
+    }
   }
 
     public static class MalKeyword extends MalType {
@@ -148,6 +173,10 @@ public class types {
 
     public String pr_str() {
       return name;
+    }
+
+    public String getType() {
+      return "MalKeyword";
     }
   }
 
