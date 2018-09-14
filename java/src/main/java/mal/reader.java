@@ -70,7 +70,7 @@ public class reader {
     // Note also that comments aren't tokenized, contrary to what the Mal guide
     // suggests. This makes it easier to ignore them, especially when they
     // appear after a form.
-    String tokenRegexString = "\\G(?:[\\s,]*|;.*$)(~@|[\\[\\]{}\\(\\)'`~^@]|\"(?:\\\\.|[^\\\"])*\"|[^\\s\\[\\]{}\\('\"`,;\\)]+)";
+    String tokenRegexString = "\\G(?:[\\s,]*|;.*$)(~@|[\\[\\]{}\\(\\)'`~^@]|\"(?:\\\\.|[^\\\"])*\"?|[^\\s\\[\\]{}\\('\"`,;\\)]+)";
     Pattern tokenRegex = Pattern.compile(tokenRegexString);
     Matcher inputMatcher = tokenRegex.matcher(inputLine);
 
@@ -237,14 +237,14 @@ public class reader {
     if (debug) console.format("Atom: %s%n", item);
 
     Pattern
-      rxString = Pattern.compile("\"(?:\\\\.|[^\\\"])*\""),
+      rxString = Pattern.compile("\"(?:\\\\.|[^\\\"])*\"?"),
       rxComment = Pattern.compile(";.*"),
       rxNumber = Pattern.compile("[0-9]+"),
       rxKeyword = Pattern.compile(":[^\\s\\[\\]{}\\('\"`,;\\)]+"),
       rxSymbol = Pattern.compile("[^\\s\\[\\]{}\\('\"`,;\\)]+");
 
     if (rxString.matcher(item).matches())
-      return new MalString(item.substring(1,item.length()-1));
+      return processString(item);
     else if (rxComment.matcher(item).matches())
       return new MalNil();
     else if (rxNumber.matcher(item).matches())
@@ -260,5 +260,23 @@ public class reader {
     else if (rxSymbol.matcher(item).matches())
       return new MalSymbol(item);
     else throw new MalException("Unknown token in input string: `" + item + "'.");
+  }
+
+  private static MalString processString(String inputStr) throws MalException {
+    Pattern rxString = Pattern.compile("\"((?:\\\\.|[^\\\"])*)\"");
+    Matcher matcher = rxString.matcher(inputStr);
+    String result;
+
+    if (matcher.matches()) {
+      result = matcher.group(1);
+    } else throw new MalException("Invalid string constant: `" + inputStr + "'.");
+
+    result = result.replace("\\n", "\n");
+    result = result.replace("\\\\", "\\");
+    result = result.replace("\\\"", "\"");
+
+    if (debug) System.out.println("String: \n  " + result);
+
+    return new MalString(result);
   }
 }
