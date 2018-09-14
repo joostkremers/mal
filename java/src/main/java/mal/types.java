@@ -11,7 +11,7 @@ public class types {
 
     public abstract Object get();
 
-    public abstract String pr_str();
+    public abstract String pr_str(boolean readably);
 
     public abstract String getType();
   }
@@ -27,7 +27,7 @@ public class types {
       return value;
     }
 
-    public String pr_str() {
+    public String pr_str(boolean readably) {
       return Integer.toString(value);
     }
 
@@ -61,11 +61,11 @@ public class types {
       items = new LinkedList<MalType>();
     }
 
-    public String pr_str() {
+    public String pr_str(boolean readably) {
       StringJoiner result = new StringJoiner(" ", "(", ")");
 
       for(MalType item : items) {
-        result.add(item.pr_str());
+        result.add(item.pr_str(readably));
       }
 
       return result.toString();
@@ -89,11 +89,11 @@ public class types {
       return items.get(i);
     }
 
-    public String pr_str() {
+    public String pr_str(boolean readably) {
       StringJoiner result = new StringJoiner(" ", "[", "]");
 
       for(MalType item : items) {
-        result.add(item.pr_str());
+        result.add(item.pr_str(readably));
       }
 
       return result.toString();
@@ -123,13 +123,13 @@ public class types {
       return map;
     }
 
-    public String pr_str() {
+    public String pr_str(boolean readably) {
       StringJoiner result = new StringJoiner(", ", "{", "}");
 
       for (HashMap.Entry<MalType,MalType> entry : map.entrySet()) {
         MalType key = entry.getKey();
         MalType value = entry.getValue();
-        result.add(key.pr_str() + " " + value.pr_str());
+        result.add(key.pr_str(readably) + " " + value.pr_str(readably));
       }
 
       return result.toString();
@@ -151,9 +151,17 @@ public class types {
       return value;
     }
 
-    // This needs proper escaping of characters.
-    public String pr_str() {
-      return "\"" + value + "\"";
+    public String pr_str(boolean readably) {
+      if (readably == false) return value;
+      else {
+        String result;
+
+        result = value.replace("\\", "\\\\");
+        result = result.replace("\n", "\\n");
+        result = result.replace("\"", "\\\"");
+
+        return "\"" + result + "\"";
+      }
     }
 
     public String getType() {
@@ -172,7 +180,7 @@ public class types {
       return name;
     }
 
-    public String pr_str() {
+    public String pr_str(boolean readably) {
       return name;
     }
 
@@ -192,7 +200,7 @@ public class types {
       return name;
     }
 
-    public String pr_str() {
+    public String pr_str(boolean readably) {
       return name;
     }
 
@@ -211,7 +219,7 @@ public class types {
       return false;
     }
 
-    public String pr_str() {
+    public String pr_str(boolean readably) {
       return "nil";
     }
 
@@ -231,7 +239,7 @@ public class types {
       return value;
     }
 
-    public String pr_str() {
+    public String pr_str(boolean readably) {
       return value.toString();
     }
 

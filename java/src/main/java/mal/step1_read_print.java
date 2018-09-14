@@ -37,7 +37,7 @@ public class step1_read_print {
   }
 
   public static String PRINT(MalType arg) {
-    return printer.pr_str(arg);
+    return printer.pr_str(arg, true);
   }
 
   public static String rep(String arg) throws MalException {

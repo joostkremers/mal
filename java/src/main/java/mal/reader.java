@@ -271,11 +271,11 @@ public class reader {
       result = matcher.group(1);
     } else throw new MalException("Invalid string constant: `" + inputStr + "'.");
 
-    result = result.replace("\\n", "\n");
     result = result.replace("\\\\", "\\");
+    result = result.replace("\\n", "\n");
     result = result.replace("\\\"", "\"");
 
-    if (debug) System.out.println("String: \n  " + result);
+    if (debug) System.out.println("String: `" + result + "'");
 
     return new MalString(result);
   }
