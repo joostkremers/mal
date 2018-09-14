@@ -242,6 +242,7 @@ public class types {
 
   public static class MalException extends Exception {
     private static final long serialVersionUID = 1L;
+
     public MalException() { super(); }
     public MalException(String message) { super(message); }
     public MalException(String message, Throwable cause) { super(message, cause); }
