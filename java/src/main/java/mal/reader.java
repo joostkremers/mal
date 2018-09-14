@@ -254,7 +254,7 @@ public class reader {
     else if (item.equals("false"))
       return new MalBoolean(false);
     else if (item.equals("true"))
-      return new MalBoolean(false);
+      return new MalBoolean(true);
     else if (rxKeyword.matcher(item).matches())
       return new MalKeyword(item);
     else if (rxSymbol.matcher(item).matches())
