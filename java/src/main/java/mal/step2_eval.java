@@ -5,7 +5,7 @@ import java.io.Console;
 import mal.types.MalException;
 import mal.types.MalType;
 
-public class step1_read_print {
+public class step2_eval {
   public static void main(String args[]) {
     Console console = System.console();
     String input;
