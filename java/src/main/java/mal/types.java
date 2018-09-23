@@ -9,11 +9,19 @@ import java.util.StringJoiner;
 public class types {
   public abstract static class MalType {
 
+    protected String type = "type";
+    
     public abstract Object get();
 
     public abstract String pr_str(boolean readably);
 
-    public abstract String getType();
+    public String toString() {
+      return this.toString();
+    }
+    
+    public String getType() {
+      return type;
+    }
   }
 
   public static class MalInt extends MalType {
@@ -21,6 +29,7 @@ public class types {
 
     public MalInt(int value) {
       this.value = value;
+      this.type = "int";
     }
 
     public Integer get() {
@@ -29,10 +38,6 @@ public class types {
 
     public String pr_str(boolean readably) {
       return Integer.toString(value);
-    }
-
-    public String getType() {
-      return "MalInt";
     }
   }
 
@@ -43,6 +48,10 @@ public class types {
       return items;
     }
 
+    public int size() {
+      return items.size();
+    }
+    
     public void add(MalType e) {
       items.add(e);
     }
@@ -51,14 +60,18 @@ public class types {
       return items.get(i);
     }
 
-    public String getType() {
-      return "MalSequence";
-    }
+    public abstract MalType subList(int beg, int end);
   }
 
   public static class MalList extends MalSequence {
     public MalList() {
-      items = new LinkedList<MalType>();
+      this.items = new LinkedList<MalType>();
+      this.type = "list";
+    }
+
+    public MalList(List items) {
+      this.items = items;
+      this.type = "list";
     }
 
     public String pr_str(boolean readably) {
@@ -71,14 +84,20 @@ public class types {
       return result.toString();
     }
 
-      public String getType() {
-      return "MalList";
+    public MalList subList(int beg, int end) {
+      return new MalList(items.subList(beg, end));
     }
-}
+  }
 
   public static class MalVector extends MalSequence {
     public MalVector() {
-      items = new ArrayList<MalType>();
+      this.items = new ArrayList<MalType>();
+      this.type = "vector";
+    }
+
+    public MalVector(List items) {
+      this.items = items;
+      this.type = "vector";
     }
 
     public void add(MalType e) {
@@ -99,8 +118,8 @@ public class types {
       return result.toString();
     }
 
-    public String getType() {
-      return "MalVector";
+    public MalVector subList(int beg, int end) {
+      return new MalVector(items.subList(beg, end));
     }
   }
 
@@ -109,6 +128,7 @@ public class types {
 
     public MalHash() {
       map = new HashMap<MalType,MalType>();
+      this.type = "hash-map";
     }
 
     public void put(MalType k, MalType v) {
@@ -134,17 +154,14 @@ public class types {
 
       return result.toString();
     }
-
-    public String getType() {
-      return "MalHash";
-    }
-}
+  }
 
   public static class MalString extends MalType {
     private String value;
 
     public MalString(String value) {
       this.value = value;
+      this.type = "string";
     }
 
     public String get() {
@@ -163,10 +180,6 @@ public class types {
         return "\"" + result + "\"";
       }
     }
-
-    public String getType() {
-      return "MalString";
-    }
   }
 
   public static class MalSymbol extends MalType {
@@ -174,6 +187,7 @@ public class types {
 
     public MalSymbol(String name) {
       this.name = name;
+      this.type = "symbol";
     }
 
     public String get() {
@@ -182,10 +196,6 @@ public class types {
 
     public String pr_str(boolean readably) {
       return name;
-    }
-
-      public String getType() {
-      return "MalSymbol";
     }
   }
 
@@ -194,6 +204,7 @@ public class types {
 
     public MalKeyword(String name) {
       this.name = name;
+      this.type = "keyword";
     }
 
     public String get() {
@@ -203,16 +214,12 @@ public class types {
     public String pr_str(boolean readably) {
       return name;
     }
-
-    public String getType() {
-      return "MalKeyword";
-    }
   }
 
   public static class MalNil extends MalType {
 
     public MalNil() {
-      // Nothing to do.
+      this.type = "symbol";
     }
 
     public Boolean get() {
@@ -222,17 +229,14 @@ public class types {
     public String pr_str(boolean readably) {
       return "nil";
     }
-
-    public String getType() {
-      return "MalNil";
-    }
-}
+  }
 
   public static class MalBoolean extends MalType {
     Boolean value;
 
     public MalBoolean(boolean value) {
       this.value = value;
+      this.type = "boolean";
     }
 
     public Boolean get() {
@@ -242,12 +246,27 @@ public class types {
     public String pr_str(boolean readably) {
       return value.toString();
     }
+  }
 
-    public String getType() {
-      return "MalBoolean";
+  @FunctionalInterface
+  static abstract interface MalCallable {
+    public MalType apply(MalList args) throws MalException;
+  }
+
+  public static abstract class MalFunction extends MalType implements MalCallable {
+    public MalFunction() {
+      this.type = "function";
     }
-}
 
+    public Object get() {
+      return this;
+    }
+
+    public String pr_str(boolean readably) {
+      return this.toString();
+    }
+  }
+  
   public static class MalException extends Exception {
     private static final long serialVersionUID = 1L;
 

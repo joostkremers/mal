@@ -187,8 +187,8 @@ public class reader {
       }
 
       parsedKey = read_form(inputForm);
-      if (!(parsedKey.getType() == "MalString" || parsedKey.getType() == "MalKeyword"))
-        throw new MalException("Wrong hash key type (" + parsedKey.getType() + ").");
+      if (!(parsedKey instanceof MalString || parsedKey instanceof MalKeyword))
+        throw new MalException("Wrong hash key type (" + parsedKey.getClass() + ").");
 
       value = inputForm.peek();
       if (value.equals("}")) throw new MalException("Odd number of elements in hash map.");
@@ -239,7 +239,7 @@ public class reader {
     Pattern
       rxString = Pattern.compile("\"(?:\\\\.|[^\\\"])*\"?"),
       rxComment = Pattern.compile(";.*"),
-      rxNumber = Pattern.compile("[0-9]+"),
+      rxNumber = Pattern.compile("[+-]?[0-9]+"),
       rxKeyword = Pattern.compile(":[^\\s\\[\\]{}\\('\"`,;\\)]+"),
       rxSymbol = Pattern.compile("[^\\s\\[\\]{}\\('\"`,;\\)]+");
 
