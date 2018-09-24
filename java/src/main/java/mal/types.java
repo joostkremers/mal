@@ -16,7 +16,7 @@ public class types {
     public abstract String pr_str(boolean readably);
 
     public String toString() {
-      return this.toString();
+      return pr_str(true);
     }
 
     public String getType() {
@@ -276,7 +276,7 @@ public class types {
 
     @Override
     public String pr_str(boolean readably) {
-      return this.toString();
+      return "<Function@" + this.hashCode() + ">";
     }
   }
 
