@@ -21,262 +21,262 @@ import mal.types.MalType;
 import mal.types.MalVector;
 
 public class reader {
-  static Console console = System.console();
-  static boolean debug = false;
+    static Console console = System.console();
+    static boolean debug = false;
 
-  static private HashMap<String, String> delims;
-  static {
-    delims = new HashMap<String, String>();
-    delims.put("(", ")");
-    delims.put("[", "]");
-  }
-
-  static private HashMap<String, String> readerMacros;
-  static {
-    readerMacros = new HashMap<String, String>();
-    readerMacros.put("@", "deref");
-    readerMacros.put("'", "quote");
-    readerMacros.put("`", "quasiquote");
-    readerMacros.put("~", "unquote");
-    readerMacros.put("~@", "splice-unquote");
-  }
-
-  public static class Reader {
-    List<String> tokens = new LinkedList<>();
-    int position = 0;
-
-    public Reader(List<String> tokens) {
-      this.tokens = tokens;
+    static private HashMap<String, String> delims;
+    static {
+        delims = new HashMap<String, String>();
+        delims.put("(", ")");
+        delims.put("[", "]");
     }
 
-    public String peek() {
-      if (position < tokens.size())
-        return tokens.get(position);
-      else return null;
+    static private HashMap<String, String> readerMacros;
+    static {
+        readerMacros = new HashMap<String, String>();
+        readerMacros.put("@", "deref");
+        readerMacros.put("'", "quote");
+        readerMacros.put("`", "quasiquote");
+        readerMacros.put("~", "unquote");
+        readerMacros.put("~@", "splice-unquote");
     }
 
-    public String next() {
-      if (position < tokens.size())
-        return tokens.get(position++);
-      else return null;
-    }
-  }
+    public static class Reader {
+        List<String> tokens = new LinkedList<>();
+        int position = 0;
 
-  public static List<String> tokenizer(String inputLine) {
-    // The regexp is modified a bit so as to require tokens to be consecutive.
-    // Not sure if this is really a good idea. Note that I don't actually do
-    // anything with this in the while loop.
+        public Reader(List<String> tokens) {
+            this.tokens = tokens;
+        }
 
-    // Note also that comments aren't tokenized, contrary to what the Mal guide
-    // suggests. This makes it easier to ignore them, especially when they
-    // appear after a form.
-    String tokenRegexString = "\\G(?:[\\s,]*|;.*$)(~@|[\\[\\]{}\\(\\)'`~^@]|\"(?:\\\\.|[^\\\"])*\"?|[^\\s\\[\\]{}\\('\"`,;\\)]+)";
-    Pattern tokenRegex = Pattern.compile(tokenRegexString);
-    Matcher inputMatcher = tokenRegex.matcher(inputLine);
+        public String peek() {
+            if (position < tokens.size())
+                return tokens.get(position);
+            else return null;
+        }
 
-    List<String> tokenizedInput = new LinkedList<>();
-
-    String token;
-
-    while (inputMatcher.find()) {
-      token = inputMatcher.group(1);
-      tokenizedInput.add(token);
+        public String next() {
+            if (position < tokens.size())
+                return tokens.get(position++);
+            else return null;
+        }
     }
 
-    if (debug) console.format("Tokenized input: %s%n", tokenizedInput);
+    public static List<String> tokenizer(String inputLine) {
+        // The regexp is modified a bit so as to require tokens to be consecutive.
+        // Not sure if this is really a good idea. Note that I don't actually do
+        // anything with this in the while loop.
 
-    return tokenizedInput;
-  }
+        // Note also that comments aren't tokenized, contrary to what the Mal guide
+        // suggests. This makes it easier to ignore them, especially when they
+        // appear after a form.
+        String tokenRegexString = "\\G(?:[\\s,]*|;.*$)(~@|[\\[\\]{}\\(\\)'`~^@]|\"(?:\\\\.|[^\\\"])*\"?|[^\\s\\[\\]{}\\('\"`,;\\)]+)";
+        Pattern tokenRegex = Pattern.compile(tokenRegexString);
+        Matcher inputMatcher = tokenRegex.matcher(inputLine);
 
-  public static MalType read_str(String inputLine) throws MalException {
-    Reader tokenized_input;
-    MalType result;
+        List<String> tokenizedInput = new LinkedList<>();
 
-    tokenized_input = new Reader(tokenizer(inputLine));
-    result = read_form(tokenized_input);
+        String token;
 
-    if (tokenized_input.peek() != null) throw new MalException("Input contains more than one form");
+        while (inputMatcher.find()) {
+            token = inputMatcher.group(1);
+            tokenizedInput.add(token);
+        }
 
-    return result;
-  }
+        if (debug) console.format("Tokenized input: %s%n", tokenizedInput);
 
-  private static MalType read_form(Reader inputForm) throws MalException {
-    MalType result = new MalNil();
-    String item;
-
-    item = inputForm.peek();
-
-    if (debug) console.format("Item: %s%n", item);
-
-    if (item != null) {
-      switch (item) {
-      case "(":
-      case "[":
-        result = read_list(inputForm);
-        break;
-
-      case "{":
-        result = read_hash(inputForm);
-        break;
-
-      case "@":
-      case "'":
-      case "`":
-      case "~":
-      case "~@":
-        result = read_macro(inputForm);
-        break;
-
-      case "^":
-        result = read_meta(inputForm);
-        break;
-
-      default:
-        result = read_atom(inputForm);
-        break;
-      }
-    }
-    return result;
-  }
-
-  private static MalType read_list(Reader inputForm) throws MalException {
-    MalSequence result;
-    String item;
-    MalType parsedItem;
-
-    String openingDelim = inputForm.next();
-    String closingDelim = delims.get(openingDelim);
-
-    switch (openingDelim) {
-    case "(": result = new MalList();
-      break;
-    case "[": result = new MalVector();
-      break;
-    default: throw new MalException("Not a list delimiter: `" + openingDelim + "'.");
+        return tokenizedInput;
     }
 
-    while (true) {
-      item = inputForm.peek();
+    public static MalType read_str(String inputLine) throws MalException {
+        Reader tokenized_input;
+        MalType result;
 
-      if (debug) console.format("List item: %s%n", item);
+        tokenized_input = new Reader(tokenizer(inputLine));
+        result = read_form(tokenized_input);
 
-      if (item == null) throw new MalException("Malformed input: expected `" + closingDelim + "', found EOL.");
-      if (item.equals(closingDelim)) {
-        inputForm.next(); // Move past the list's closing parenthesis.
+        if (tokenized_input.peek() != null) throw new MalException("Input contains more than one form");
+
         return result;
-      }
-      if (delims.containsValue(item)) throw new MalException("Malfored input; expected `" + closingDelim + "', found + `" + item + "'.");
-
-      parsedItem = read_form(inputForm);
-      result.add(parsedItem);
     }
-  }
 
-  private static MalHash read_hash(Reader inputForm) throws MalException {
-    MalHash result = new MalHash();
-    String key, value;
-    MalType parsedKey, parsedValue;
+    private static MalType read_form(Reader inputForm) throws MalException {
+        MalType result = new MalNil();
+        String item;
 
-    inputForm.next();
+        item = inputForm.peek();
 
-    while(true) {
-      key = inputForm.peek();
-      if (key.equals("}")) {
-        inputForm.next(); // Move past the closing brace.
+        if (debug) console.format("Item: %s%n", item);
+
+        if (item != null) {
+            switch (item) {
+            case "(":
+            case "[":
+                result = read_list(inputForm);
+                break;
+
+            case "{":
+                result = read_hash(inputForm);
+                break;
+
+            case "@":
+            case "'":
+            case "`":
+            case "~":
+            case "~@":
+                result = read_macro(inputForm);
+                break;
+
+            case "^":
+                result = read_meta(inputForm);
+                break;
+
+            default:
+                result = read_atom(inputForm);
+                break;
+            }
+        }
         return result;
-      }
-
-      parsedKey = read_form(inputForm);
-      if (!(parsedKey instanceof MalString || parsedKey instanceof MalKeyword))
-        throw new MalException("Wrong hash key type (" + parsedKey.getClass() + ").");
-
-      value = inputForm.peek();
-      if (value.equals("}")) throw new MalException("Odd number of elements in hash map.");
-      parsedValue = read_form(inputForm);
-
-      result.put(parsedKey, parsedValue);
     }
-  }
 
-  private static MalList read_macro(Reader inputForm) throws MalException {
-    MalList result = new MalList();
+    private static MalType read_list(Reader inputForm) throws MalException {
+        MalSequence result;
+        String item;
+        MalType parsedItem;
 
-    String macro = inputForm.next();
+        String openingDelim = inputForm.next();
+        String closingDelim = delims.get(openingDelim);
 
-    String resolution = readerMacros.get(macro);
-    result.add(new MalSymbol(resolution));
+        switch (openingDelim) {
+        case "(": result = new MalList();
+            break;
+        case "[": result = new MalVector();
+            break;
+        default: throw new MalException("Not a list delimiter: `" + openingDelim + "'.");
+        }
 
-    MalType resolvedForm = read_form(inputForm);
+        while (true) {
+            item = inputForm.peek();
 
-    if (resolvedForm == null) throw new MalException("Incorrect use of reader macro.");
+            if (debug) console.format("List item: %s%n", item);
 
-    result.add(resolvedForm);
+            if (item == null) throw new MalException("Malformed input: expected `" + closingDelim + "', found EOL.");
+            if (item.equals(closingDelim)) {
+                inputForm.next(); // Move past the list's closing parenthesis.
+                return result;
+            }
+            if (delims.containsValue(item)) throw new MalException("Malfored input; expected `" + closingDelim + "', found + `" + item + "'.");
 
-    return result;
-  }
+            parsedItem = read_form(inputForm);
+            result.add(parsedItem);
+        }
+    }
 
-  private static MalList read_meta(Reader inputForm) throws MalException {
-    MalList result = new MalList();
+    private static MalHash read_hash(Reader inputForm) throws MalException {
+        MalHash result = new MalHash();
+        String key, value;
+        MalType parsedKey, parsedValue;
 
-    result.add(new MalSymbol("with-meta"));
+        inputForm.next();
 
-    inputForm.next();
+        while(true) {
+            key = inputForm.peek();
+            if (key.equals("}")) {
+                inputForm.next(); // Move past the closing brace.
+                return result;
+            }
 
-    MalType data = read_form(inputForm);
-    MalType form = read_form(inputForm);
+            parsedKey = read_form(inputForm);
+            if (!(parsedKey instanceof MalString || parsedKey instanceof MalKeyword))
+                throw new MalException("Wrong hash key type (" + parsedKey.getClass() + ").");
 
-    result.add(form);
-    result.add(data);
+            value = inputForm.peek();
+            if (value.equals("}")) throw new MalException("Odd number of elements in hash map.");
+            parsedValue = read_form(inputForm);
 
-    return result;
-  }
+            result.put(parsedKey, parsedValue);
+        }
+    }
 
-  private static MalType read_atom(Reader inputForm) throws MalException {
-    String item = inputForm.next();
+    private static MalList read_macro(Reader inputForm) throws MalException {
+        MalList result = new MalList();
 
-    if (debug) console.format("Atom: %s%n", item);
+        String macro = inputForm.next();
 
-    Pattern
-      rxString = Pattern.compile("\"(?:\\\\.|[^\\\"])*\"?"),
-      rxComment = Pattern.compile(";.*"),
-      rxNumber = Pattern.compile("[+-]?[0-9]+"),
-      rxKeyword = Pattern.compile(":[^\\s\\[\\]{}\\('\"`,;\\)]+"),
-      rxSymbol = Pattern.compile("[^\\s\\[\\]{}\\('\"`,;\\)]+");
+        String resolution = readerMacros.get(macro);
+        result.add(new MalSymbol(resolution));
 
-    if (rxString.matcher(item).matches())
-      return processString(item);
-    else if (rxComment.matcher(item).matches())
-      return new MalNil();
-    else if (rxNumber.matcher(item).matches())
-      return new MalInt(Integer.parseInt(item));
-    else if (item.equals("nil"))
-      return new MalNil();
-    else if (item.equals("false"))
-      return new MalBoolean(false);
-    else if (item.equals("true"))
-      return new MalBoolean(true);
-    else if (rxKeyword.matcher(item).matches())
-      return new MalKeyword(item);
-    else if (rxSymbol.matcher(item).matches())
-      return new MalSymbol(item);
-    else throw new MalException("Unknown token in input string: `" + item + "'.");
-  }
+        MalType resolvedForm = read_form(inputForm);
 
-  private static MalString processString(String inputStr) throws MalException {
-    Pattern rxString = Pattern.compile("\"((?:\\\\.|[^\\\"])*)\"");
-    Matcher matcher = rxString.matcher(inputStr);
-    String result;
+        if (resolvedForm == null) throw new MalException("Incorrect use of reader macro.");
 
-    if (matcher.matches()) {
-      result = matcher.group(1);
-    } else throw new MalException("Invalid string constant: `" + inputStr + "'.");
+        result.add(resolvedForm);
 
-    result = result.replace("\\\\", "\\");
-    result = result.replace("\\n", "\n");
-    result = result.replace("\\\"", "\"");
+        return result;
+    }
 
-    if (debug) System.out.println("String: `" + result + "'");
+    private static MalList read_meta(Reader inputForm) throws MalException {
+        MalList result = new MalList();
 
-    return new MalString(result);
-  }
+        result.add(new MalSymbol("with-meta"));
+
+        inputForm.next();
+
+        MalType data = read_form(inputForm);
+        MalType form = read_form(inputForm);
+
+        result.add(form);
+        result.add(data);
+
+        return result;
+    }
+
+    private static MalType read_atom(Reader inputForm) throws MalException {
+        String item = inputForm.next();
+
+        if (debug) console.format("Atom: %s%n", item);
+
+        Pattern
+            rxString = Pattern.compile("\"(?:\\\\.|[^\\\"])*\"?"),
+            rxComment = Pattern.compile(";.*"),
+            rxNumber = Pattern.compile("[+-]?[0-9]+"),
+            rxKeyword = Pattern.compile(":[^\\s\\[\\]{}\\('\"`,;\\)]+"),
+            rxSymbol = Pattern.compile("[^\\s\\[\\]{}\\('\"`,;\\)]+");
+
+        if (rxString.matcher(item).matches())
+            return processString(item);
+        else if (rxComment.matcher(item).matches())
+            return new MalNil();
+        else if (rxNumber.matcher(item).matches())
+            return new MalInt(Integer.parseInt(item));
+        else if (item.equals("nil"))
+            return new MalNil();
+        else if (item.equals("false"))
+            return new MalBoolean(false);
+        else if (item.equals("true"))
+            return new MalBoolean(true);
+        else if (rxKeyword.matcher(item).matches())
+            return new MalKeyword(item);
+        else if (rxSymbol.matcher(item).matches())
+            return new MalSymbol(item);
+        else throw new MalException("Unknown token in input string: `" + item + "'.");
+    }
+
+    private static MalString processString(String inputStr) throws MalException {
+        Pattern rxString = Pattern.compile("\"((?:\\\\.|[^\\\"])*)\"");
+        Matcher matcher = rxString.matcher(inputStr);
+        String result;
+
+        if (matcher.matches()) {
+            result = matcher.group(1);
+        } else throw new MalException("Invalid string constant: `" + inputStr + "'.");
+
+        result = result.replace("\\\\", "\\");
+        result = result.replace("\\n", "\n");
+        result = result.replace("\\\"", "\"");
+
+        if (debug) System.out.println("String: `" + result + "'");
+
+        return new MalString(result);
+    }
 }
