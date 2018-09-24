@@ -185,7 +185,7 @@ public class types {
     }
   }
 
-  public static class MalSymbol extends MalType {
+  public static class MalSymbol extends MalType implements Comparable<MalSymbol> {
     private String name;
 
     public MalSymbol(String name) {
@@ -201,6 +201,28 @@ public class types {
     @Override
     public String pr_str(boolean readably) {
       return name;
+    }
+
+    @Override
+    public boolean equals(Object obj){
+      if (this == obj) return true;
+      if (!(obj instanceof MalSymbol)) return false;
+
+      MalSymbol that = (MalSymbol)obj;
+      return this.name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode(){
+      return name.hashCode();
+    }
+
+    @Override
+    public int compareTo(MalSymbol that){
+      //returns -1 if "this" object is less than "that" object
+      //returns 0 if they are equal
+      //returns 1 if "this" object is greater than "that" object
+      return this.name.compareTo(that.name);
     }
   }
 
