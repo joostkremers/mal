@@ -11,7 +11,7 @@ public class types {
 
     protected String type = "type";
 
-    public abstract Object get();
+    public abstract Object getValue();
 
     public abstract String pr_str(boolean readably);
 
@@ -33,7 +33,7 @@ public class types {
     }
 
     @Override
-    public Integer get() {
+    public Integer getValue() {
       return value;
     }
 
@@ -47,7 +47,7 @@ public class types {
     List<MalType> items;
 
     @Override
-    public List<MalType> get() {
+    public List<MalType> getValue() {
       return items;
     }
 
@@ -139,7 +139,7 @@ public class types {
     }
 
     @Override
-    public HashMap get() {
+    public HashMap getValue() {
       return map;
     }
 
@@ -166,7 +166,7 @@ public class types {
     }
 
     @Override
-    public String get() {
+    public String getValue() {
       return value;
     }
 
@@ -194,7 +194,7 @@ public class types {
     }
 
     @Override
-    public String get() {
+    public String getValue() {
       return name;
     }
 
@@ -235,7 +235,7 @@ public class types {
     }
 
     @Override
-    public String get() {
+    public String getValue() {
       return name;
     }
 
@@ -252,7 +252,7 @@ public class types {
     }
 
     @Override
-    public Boolean get() {
+    public Boolean getValue() {
       return false;
     }
 
@@ -271,7 +271,7 @@ public class types {
     }
 
     @Override
-    public Boolean get() {
+    public Boolean getValue() {
       return value;
     }
 
@@ -292,7 +292,7 @@ public class types {
     }
 
     @Override
-    public Object get() {
+    public Object getValue() {
       return this;
     }
 

@@ -24,7 +24,7 @@ public class step3_env {
 
   private static int checkMalInt(MalType arg) throws MalException {
     if (arg instanceof MalInt)
-      return (int)arg.get();
+      return (int)arg.getValue();
     else throw new MalException("Wrong argument type: expected int, got " + arg.getType() + ".");
   }
 
@@ -33,7 +33,7 @@ public class step3_env {
       public MalInt apply(MalList args) throws MalException {
         int result = 0;
 
-        for(MalType i : args.get()) {
+        for(MalType i : args.getValue()) {
           result += checkMalInt(i);
         }
         return new MalInt(result);
@@ -43,14 +43,14 @@ public class step3_env {
   static MalFunction malSubtract = new MalFunction() {
       @Override
       public MalInt apply(MalList args) throws MalException {
-        int size = args.get().size();
+        int size = args.getValue().size();
 
         if (size == 0) return new MalInt(0);
 
         int result = checkMalInt(args.get(0));
         if (size == 1) return new MalInt(-result);
 
-        for (MalType i : args.get().subList(1,size)) {
+        for (MalType i : args.getValue().subList(1,size)) {
           result -= checkMalInt(i);
         }
         return new MalInt(result);
@@ -62,7 +62,7 @@ public class step3_env {
       public MalInt apply(MalList args) throws MalException {
         int result = 1;
 
-        for(MalType i : args.get()) {
+        for(MalType i : args.getValue()) {
           result *= checkMalInt(i);
         }
         return new MalInt(result);
@@ -72,14 +72,14 @@ public class step3_env {
   static MalFunction malDivide = new MalFunction() {
       @Override
       public MalInt apply(MalList args) throws MalException {
-        int size = args.get().size();
+        int size = args.getValue().size();
 
         if (size == 0) throw new MalException("Wrong number of arguments: required >1, received 0.");
 
         int result = checkMalInt(args.get(0));
         if (size == 1) return new MalInt(1/result); // These are integers, so this will always return 0.
 
-        for (MalType i : args.get().subList(1,size)) {
+        for (MalType i : args.getValue().subList(1,size)) {
           result /= checkMalInt(i);
         }
         return new MalInt(result);
@@ -125,7 +125,7 @@ public class step3_env {
     if (arg instanceof MalList) {
       // LinkedList<MalType> list = arg.get();
 
-      if (((LinkedList)arg.get()).size() == 0) {
+      if (((LinkedList)arg.getValue()).size() == 0) {
         return arg;
       }
       MalList evaledList = (MalList)eval_ast(arg, env);
@@ -154,14 +154,14 @@ public class step3_env {
   private static MalType eval_ast(MalType ast, Env env) throws MalException {
     if (ast instanceof MalSymbol) {
       MalType result = env.get((MalSymbol)ast);
-      if (result == null) throw new MalException("Unbound symbol: " + ast.get() + ".");
+      if (result == null) throw new MalException("Unbound symbol: " + ast.getValue() + ".");
       else return result;
     }
 
     if (ast instanceof MalList) {
       MalList astList = (MalList)ast,
         result = new MalList();
-      for(MalType elem : astList.get()) {
+      for(MalType elem : astList.getValue()) {
         result.add(EVAL(elem, env));
       }
       return result;
@@ -170,14 +170,14 @@ public class step3_env {
     if (ast instanceof MalVector) {
       MalVector astVector = (MalVector)ast,
         result = new MalVector();
-      for(MalType elem : astVector.get()) {
+      for(MalType elem : astVector.getValue()) {
         result.add(EVAL(elem, env));
       }
       return result;
     }
 
     if (ast instanceof MalHash) {
-      HashMap<MalType, MalType> astHash = (HashMap)ast.get();
+      HashMap<MalType, MalType> astHash = (HashMap)ast.getValue();
       MalHash result = new MalHash();
       for(HashMap.Entry<MalType,MalType> entry : astHash.entrySet()) {
         result.put(entry.getKey(), EVAL(entry.getValue(), env));
