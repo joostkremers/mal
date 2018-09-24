@@ -4,6 +4,7 @@ import java.io.Console;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import mal.env.Env;
 import mal.types.MalCallable;
 import mal.types.MalException;
 import mal.types.MalFunction;
@@ -85,14 +86,14 @@ public class step3_env {
       }
     };
 
-  static HashMap<String, MalType> repl_env;
+  static Env repl_env;
 
   static {
-    repl_env = new HashMap<String, MalType>();
-    repl_env.put("+", malAdd);
-    repl_env.put("-", malSubtract);
-    repl_env.put("*", malMultiply);
-    repl_env.put("/", malDivide);
+    repl_env = new Env(null);
+    repl_env.set(new MalSymbol("+"), malAdd);
+    repl_env.set(new MalSymbol("-"), malSubtract);
+    repl_env.set(new MalSymbol("*"), malMultiply);
+    repl_env.set(new MalSymbol("/"), malDivide);
   }
 
   public static void main(String args[]) {
@@ -120,7 +121,7 @@ public class step3_env {
     return reader.read_str(arg);
   }
 
-  public static MalType EVAL(MalType arg, HashMap<String, MalType> env) throws MalException {
+  public static MalType EVAL(MalType arg, Env env) throws MalException {
     if (arg instanceof MalList) {
       // LinkedList<MalType> list = arg.get();
 
@@ -150,9 +151,9 @@ public class step3_env {
     return result;
   }
 
-  private static MalType eval_ast(MalType ast, HashMap<String, MalType> env) throws MalException {
+  private static MalType eval_ast(MalType ast, Env env) throws MalException {
     if (ast instanceof MalSymbol) {
-      MalType result = env.get(ast.get());
+      MalType result = env.get((MalSymbol)ast);
       if (result == null) throw new MalException("Unbound symbol: " + ast.get() + ".");
       else return result;
     }
