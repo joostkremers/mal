@@ -63,7 +63,10 @@ public class types {
             return items.get(i);
         }
 
-        public abstract MalType subList(int beg, int end);
+        // Note: subList always returns a list, even when called on a vector.
+        public MalList subList(int beg, int end) {
+            return new MalList(items.subList(beg, end));
+        }
     }
 
     public static class MalList extends MalSequence {
@@ -86,11 +89,6 @@ public class types {
             }
 
             return result.toString();
-        }
-
-        @Override
-        public MalList subList(int beg, int end) {
-            return new MalList(items.subList(beg, end));
         }
     }
 
@@ -116,8 +114,7 @@ public class types {
             return result.toString();
         }
 
-        @Override
-        public MalVector subList(int beg, int end) {
+        public MalVector subVector(int beg, int end) {
             return new MalVector(items.subList(beg, end));
         }
     }
