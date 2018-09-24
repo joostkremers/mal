@@ -72,7 +72,7 @@ public class types {
             this.type = "list";
         }
 
-        public MalList(List items) {
+        public MalList(List<MalType> items) {
             this.items = items;
             this.type = "list";
         }
@@ -100,7 +100,7 @@ public class types {
             this.type = "vector";
         }
 
-        public MalVector(List items) {
+        public MalVector(List<MalType> items) {
             this.items = items;
             this.type = "vector";
         }
