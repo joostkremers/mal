@@ -32,10 +32,12 @@ public class types {
       this.type = "int";
     }
 
+    @Override
     public Integer get() {
       return value;
     }
 
+    @Override
     public String pr_str(boolean readably) {
       return Integer.toString(value);
     }
@@ -44,6 +46,7 @@ public class types {
   public static abstract class MalSequence extends MalType {
     List<MalType> items;
 
+    @Override
     public List<MalType> get() {
       return items;
     }
@@ -74,6 +77,7 @@ public class types {
       this.type = "list";
     }
 
+    @Override
     public String pr_str(boolean readably) {
       StringJoiner result = new StringJoiner(" ", "(", ")");
 
@@ -84,6 +88,7 @@ public class types {
       return result.toString();
     }
 
+    @Override
     public MalList subList(int beg, int end) {
       return new MalList(items.subList(beg, end));
     }
@@ -108,6 +113,7 @@ public class types {
       return items.get(i);
     }
 
+    @Override
     public String pr_str(boolean readably) {
       StringJoiner result = new StringJoiner(" ", "[", "]");
 
@@ -118,6 +124,7 @@ public class types {
       return result.toString();
     }
 
+    @Override
     public MalVector subList(int beg, int end) {
       return new MalVector(items.subList(beg, end));
     }
@@ -139,10 +146,12 @@ public class types {
       return map.get(k);
     }
 
+    @Override
     public HashMap get() {
       return map;
     }
 
+    @Override
     public String pr_str(boolean readably) {
       StringJoiner result = new StringJoiner(", ", "{", "}");
 
@@ -164,10 +173,12 @@ public class types {
       this.type = "string";
     }
 
+    @Override
     public String get() {
       return value;
     }
 
+    @Override
     public String pr_str(boolean readably) {
       if (readably == false) return value;
       else {
@@ -190,10 +201,12 @@ public class types {
       this.type = "symbol";
     }
 
+    @Override
     public String get() {
       return name;
     }
 
+    @Override
     public String pr_str(boolean readably) {
       return name;
     }
@@ -207,10 +220,12 @@ public class types {
       this.type = "keyword";
     }
 
+    @Override
     public String get() {
       return name;
     }
 
+    @Override
     public String pr_str(boolean readably) {
       return name;
     }
@@ -222,10 +237,12 @@ public class types {
       this.type = "symbol";
     }
 
+    @Override
     public Boolean get() {
       return false;
     }
 
+    @Override
     public String pr_str(boolean readably) {
       return "nil";
     }
@@ -239,10 +256,12 @@ public class types {
       this.type = "boolean";
     }
 
+    @Override
     public Boolean get() {
       return value;
     }
 
+    @Override
     public String pr_str(boolean readably) {
       return value.toString();
     }
@@ -258,10 +277,12 @@ public class types {
       this.type = "function";
     }
 
+    @Override
     public Object get() {
       return this;
     }
 
+    @Override
     public String pr_str(boolean readably) {
       return this.toString();
     }
