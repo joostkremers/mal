@@ -105,14 +105,6 @@ public class types {
       this.type = "vector";
     }
 
-    public void add(MalType e) {
-      items.add(e);
-    }
-
-    public MalType get(int i) {
-      return items.get(i);
-    }
-
     @Override
     public String pr_str(boolean readably) {
       StringJoiner result = new StringJoiner(" ", "[", "]");
