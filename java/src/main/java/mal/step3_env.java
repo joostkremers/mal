@@ -2,7 +2,6 @@ package mal;
 
 import java.io.Console;
 import java.util.HashMap;
-import java.util.LinkedList;
 
 import mal.env.Env;
 import mal.types.MalCallable;
@@ -11,6 +10,7 @@ import mal.types.MalFunction;
 import mal.types.MalHash;
 import mal.types.MalInt;
 import mal.types.MalList;
+import mal.types.MalSequence;
 import mal.types.MalSymbol;
 import mal.types.MalType;
 import mal.types.MalVector;
@@ -123,11 +123,23 @@ public class step3_env {
 
     public static MalType EVAL(MalType arg, Env env) throws MalException {
         if (arg instanceof MalList) {
-            // LinkedList<MalType> list = arg.get();
+            MalList argList = (MalList)arg;
 
-            if (((LinkedList)arg.getValue()).size() == 0) {
+            // Empty list is just returned.
+            if (argList.size() == 0) {
                 return arg;
             }
+
+            // def!
+            if (argList.get(0).getValue().equals("def!")) {
+                return malDef(argList.subList(1,argList.size()), env);
+            }
+
+            // let*
+            if (argList.get(0).getValue().equals("let*")) {
+                return malLet(argList.subList(1,argList.size()), env);
+            }
+
             MalList evaledList = (MalList)eval_ast(arg, env);
 
             if (!(evaledList.get(0) instanceof MalCallable))
@@ -186,5 +198,35 @@ public class step3_env {
         }
 
         return ast;
+    }
+
+    private static MalType malDef(MalList list, Env env) throws MalException {
+        if (list.size() != 2) throw new MalException("Wrong number of arguments for `def!': expected 2, received " + list.size() + ".");
+        if (!(list.get(0) instanceof MalSymbol)) throw new MalException("Cannot define non-symbol: " + list.get(0).toString());
+
+        MalSymbol symbol = (MalSymbol)list.get(0);
+
+        MalType evaledValue = EVAL(list.get(1), env);
+
+        env.set(symbol, evaledValue);
+
+        return evaledValue;
+    }
+
+    private static MalType malLet(MalList list, Env env) throws MalException {
+        if (list.size() != 2) throw new MalException("Wrong number of arguments for `let*': expected 2, received " + list.size() + ".");
+        if (!(list.get(0) instanceof MalSequence)) throw new MalException("Cannot let-bind: " + list.get(0).toString());
+
+        MalSequence bindList = (MalSequence)list.get(0);
+
+        if ((bindList.size() % 2) != 0) throw new MalException("Odd number of elements in bind list.");
+
+        Env letEnv = new Env(env);
+
+        for (int i=0; i < bindList.size(); i+=2) {
+            malDef(bindList.subList(i,i+2), letEnv);
+        }
+
+        return EVAL(list.get(1), letEnv);
     }
 }
