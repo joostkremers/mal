@@ -26,7 +26,7 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.2.1</version>
         <configuration>
-          <mainClass>mal.step2_eval</mainClass>
+          <mainClass>mal.step3_env</mainClass>
         </configuration>
       </plugin>
     </plugins>
