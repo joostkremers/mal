@@ -10,7 +10,7 @@ public class types {
   public abstract static class MalType {
 
     protected String type = "type";
-    
+
     public abstract Object get();
 
     public abstract String pr_str(boolean readably);
@@ -18,7 +18,7 @@ public class types {
     public String toString() {
       return this.toString();
     }
-    
+
     public String getType() {
       return type;
     }
@@ -54,7 +54,7 @@ public class types {
     public int size() {
       return items.size();
     }
-    
+
     public void add(MalType e) {
       items.add(e);
     }
@@ -287,7 +287,7 @@ public class types {
       return this.toString();
     }
   }
-  
+
   public static class MalException extends Exception {
     private static final long serialVersionUID = 1L;
 
