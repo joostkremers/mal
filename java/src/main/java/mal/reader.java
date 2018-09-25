@@ -7,13 +7,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import mal.types.MalBoolean;
 import mal.types.MalException;
 import mal.types.MalHash;
 import mal.types.MalInt;
 import mal.types.MalKeyword;
 import mal.types.MalList;
-import mal.types.MalNil;
 import mal.types.MalSequence;
 import mal.types.MalString;
 import mal.types.MalSymbol;
@@ -101,7 +99,7 @@ public class reader {
     }
 
     private static MalType read_form(Reader inputForm) throws MalException {
-        MalType result = new MalNil();
+        MalType result = MALNIL;
         String item;
 
         item = inputForm.peek();
@@ -246,15 +244,15 @@ public class reader {
         if (rxString.matcher(item).matches())
             return processString(item);
         else if (rxComment.matcher(item).matches())
-            return new MalNil();
+            return MALNIL;
         else if (rxNumber.matcher(item).matches())
             return new MalInt(Integer.parseInt(item));
         else if (item.equals("nil"))
-            return new MalNil();
+            return MALNIL;
         else if (item.equals("false"))
-            return new MalBoolean(false);
+            return MALFALSE;
         else if (item.equals("true"))
-            return new MalBoolean(true);
+            return MALTRUE;
         else if (rxKeyword.matcher(item).matches())
             return new MalKeyword(item);
         else if (rxSymbol.matcher(item).matches())
