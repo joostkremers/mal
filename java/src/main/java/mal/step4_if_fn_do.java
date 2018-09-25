@@ -141,6 +141,11 @@ public class step4_if_fn_do {
                 return malLet(argList.subList(1,size), env);
             }
 
+            // do
+            if (argList.get(0).getValue().equals("do")) {
+                return eval_ast(argList.subList(1,size), env).get(size-1);
+            }
+
             MalList evaledList = (MalList)eval_ast(arg, env);
 
             if (!(evaledList.get(0) instanceof MalCallable))
