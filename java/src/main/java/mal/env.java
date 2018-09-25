@@ -1,6 +1,7 @@
 package mal;
 
 import java.util.HashMap;
+import java.util.List;
 
 import mal.types.MalException;
 import mal.types.MalSymbol;
@@ -20,8 +21,8 @@ public class env {
 
             for (int i = 0; i<binds.size(); i++) {
                 if (!(binds.get(i) instanceof MalSymbol)) throw new MalException("Cannot bind non-symbol: " + binds.get(i).toString());
+                this.set((MalSymbol)binds.get(i), exprs.get(i));
             }
-            this.set(binds.get(i), exprs.get(i));
 
             this.outer = outer;
         }
