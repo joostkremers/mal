@@ -246,11 +246,12 @@ public class step4_if_fn_do {
         if (!(list.size() == 2 || list.size() == 3))
             throw new MalException("Wrong number of arguments for `if': expected 2-3, received " + list.size() + ".");
 
-        MalType testresult = EVAL(list.get(0), env);
-        if (testresult.getValue() == false) {
-            if (list.size() == 2) return MALNIL;
+        MalType test = EVAL(list.get(0), env);
+        if ((boolean)test.getValue() == true) return EVAL(list.get(1), env);
+        if ((boolean)test.getValue() == false) {
+            if (list.size() == 2) return types.Nil;
             else return EVAL(list.get(2), env);
         }
-        else return EVAL(list.get(1), env);
+        else throw new MalException("Wrong argument type: expected boolean, received " + test.getType() + ".");
     }
 }
