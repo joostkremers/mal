@@ -295,7 +295,7 @@ public class types {
 
         @Override
         public String pr_str(boolean readably) {
-            return "<Function@" + this.hashCode() + ">";
+            return "#<function@" + this.hashCode() + ">";
         }
     }
 
