@@ -99,7 +99,7 @@ public class reader {
     }
 
     private static MalType read_form(Reader inputForm) throws MalException {
-        MalType result = MALNIL;
+        MalType result = types.Nil;
         String item;
 
         item = inputForm.peek();
@@ -244,15 +244,15 @@ public class reader {
         if (rxString.matcher(item).matches())
             return processString(item);
         else if (rxComment.matcher(item).matches())
-            return MALNIL;
+            return types.Nil;
         else if (rxNumber.matcher(item).matches())
             return new MalInt(Integer.parseInt(item));
         else if (item.equals("nil"))
-            return MALNIL;
+            return types.Nil;
         else if (item.equals("false"))
-            return MALFALSE;
+            return types.False;
         else if (item.equals("true"))
-            return MALTRUE;
+            return types.True;
         else if (rxKeyword.matcher(item).matches())
             return new MalKeyword(item);
         else if (rxSymbol.matcher(item).matches())
