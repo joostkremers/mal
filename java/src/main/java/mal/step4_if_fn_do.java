@@ -146,6 +146,11 @@ public class step4_if_fn_do {
                 return eval_ast(argList.subList(1,size), env).get(size-1);
             }
 
+            // if
+            if (argList.get(0).getValue().equals("if")) {
+                return malIf(argList.subList(1,size), env);
+            }
+
             MalList evaledList = (MalList)eval_ast(arg, env);
 
             if (!(evaledList.get(0) instanceof MalCallable))
@@ -234,5 +239,17 @@ public class step4_if_fn_do {
         }
 
         return EVAL(list.get(1), letEnv);
+    }
+
+    private static MalType malIf(MalList list, Env env) throws MalException {
+        if (!(list.size() == 2 || list.size() == 3))
+            throw new MalException("Wrong number of arguments for `if': expected 2-3, received " + list.size() + ".");
+
+        MalType testresult = EVAL(list.get(0), env);
+        if (testresult.getValue() == false) {
+            if (list.size() == 2) return MALNIL;
+            else return EVAL(list.get(2), env);
+        }
+        else return EVAL(list.get(1), env);
     }
 }
