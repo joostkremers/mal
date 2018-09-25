@@ -143,7 +143,8 @@ public class step4_if_fn_do {
 
             // do
             if (argList.get(0).getValue().equals("do")) {
-                return eval_ast(argList.subList(1,size), env).get(size-1);
+                MalList result = (MalList)eval_ast(argList.subList(1,size), env);
+                return result.get(size-1);
             }
 
             // if
