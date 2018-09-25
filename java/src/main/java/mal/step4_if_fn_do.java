@@ -124,20 +124,21 @@ public class step4_if_fn_do {
     public static MalType EVAL(MalType arg, Env env) throws MalException {
         if (arg instanceof MalList) {
             MalList argList = (MalList)arg;
+            int size = argList.size();
 
             // Empty list is just returned.
-            if (argList.size() == 0) {
+            if (size == 0) {
                 return arg;
             }
 
             // def!
             if (argList.get(0).getValue().equals("def!")) {
-                return malDef(argList.subList(1,argList.size()), env);
+                return malDef(argList.subList(1,size), env);
             }
 
             // let*
             if (argList.get(0).getValue().equals("let*")) {
-                return malLet(argList.subList(1,argList.size()), env);
+                return malLet(argList.subList(1,size), env);
             }
 
             MalList evaledList = (MalList)eval_ast(arg, env);
