@@ -242,7 +242,7 @@ public class types {
         }
     }
 
-    public static class MalNil extends MalType {
+    private static class MalNil extends MalType {
 
         public MalNil() {
             this.type = "symbol";
@@ -259,7 +259,9 @@ public class types {
         }
     }
 
-    public static class MalBoolean extends MalType {
+    public static final MalNil MALNIL = new MalNil();
+
+    private static class MalBoolean extends MalType {
         Boolean value;
 
         public MalBoolean(boolean value) {
@@ -277,6 +279,9 @@ public class types {
             return value.toString();
         }
     }
+
+    public static final MalBoolean MALTRUE = new MalBoolean(true);
+    public static final MalBoolean MALFALSE = new MalBoolean(false);
 
     @FunctionalInterface
     static abstract interface MalCallable {
