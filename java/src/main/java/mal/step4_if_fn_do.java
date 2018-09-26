@@ -15,17 +15,15 @@ import mal.types.MalType;
 import mal.types.MalVector;
 
 public class step4_if_fn_do {
-    static Env repl_env;
-
-    static {
-        for (MalSymbol symbol : core.ns.keySet()) {
-            repl_env.set(symbol, core.ns.get(symbol));
-        }
-    }
+    static Env repl_env = new Env(null);
 
     public static void main(String args[]) {
         Console console = System.console();
         String input, output;
+
+        for (MalSymbol symbol : core.ns.keySet()) {
+            repl_env.set(symbol, core.ns.get(symbol));
+        }
 
         while (true) {
             input = console.readLine("user> ");

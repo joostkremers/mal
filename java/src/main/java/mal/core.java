@@ -79,9 +79,9 @@ public class core {
             }
         };
 
-    static {
-        HashMap<MalSymbol,MalFunction> ns = new HashMap();
+    static HashMap<MalSymbol,MalFunction> ns = new HashMap<>();
 
+    static {
         ns.put(new MalSymbol("+"), malAdd);
         ns.put(new MalSymbol("-"), malSubtract);
         ns.put(new MalSymbol("*"), malMultiply);
