@@ -209,7 +209,7 @@ public class step4_if_fn_do {
             HashMap<MalType, MalType> astHash = (HashMap)ast.getJValue();
             MalHash result = new MalHash();
             for(HashMap.Entry<MalType,MalType> entry : astHash.entrySet()) {
-                result.put(entry.getKey(), EVAL(entry.getJValue(), env));
+                result.put(entry.getKey(), EVAL(entry.getValue(), env));
             }
             return result;
         }

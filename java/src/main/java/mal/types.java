@@ -149,7 +149,7 @@ public class types {
 
             for (HashMap.Entry<MalType,MalType> entry : map.entrySet()) {
                 MalType key = entry.getKey();
-                MalType value = entry.getJValue();
+                MalType value = entry.getValue();
                 result.add(key.pr_str(readably) + " " + value.pr_str(readably));
             }
 
