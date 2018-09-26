@@ -8,7 +8,6 @@ import mal.types.MalCallable;
 import mal.types.MalException;
 import mal.types.MalFunction;
 import mal.types.MalHash;
-import mal.types.MalInt;
 import mal.types.MalList;
 import mal.types.MalSequence;
 import mal.types.MalSymbol;
@@ -16,84 +15,12 @@ import mal.types.MalType;
 import mal.types.MalVector;
 
 public class step4_if_fn_do {
-
-    // Built-in integer arithmetic functions.
-    //
-    // Although these functions are obvious candidates for reduce(), the fact that
-    // we need to handle errors makes that too cumbersome.
-
-    private static int checkMalInt(MalType arg) throws MalException {
-        if (arg instanceof MalInt)
-            return (int)arg.getJValue();
-        else throw new MalException("Wrong argument type: expected int, got " + arg.getType() + ".");
-    }
-
-    static MalFunction malAdd = new MalFunction() {
-            @Override
-            public MalInt apply(MalList args) throws MalException {
-                int result = 0;
-
-                for(MalType i : args.getJValue()) {
-                    result += checkMalInt(i);
-                }
-                return new MalInt(result);
-            }
-        };
-
-    static MalFunction malSubtract = new MalFunction() {
-            @Override
-            public MalInt apply(MalList args) throws MalException {
-                int size = args.getJValue().size();
-
-                if (size == 0) return new MalInt(0);
-
-                int result = checkMalInt(args.get(0));
-                if (size == 1) return new MalInt(-result);
-
-                for (MalType i : args.getJValue().subList(1,size)) {
-                    result -= checkMalInt(i);
-                }
-                return new MalInt(result);
-            }
-        };
-
-    static MalFunction malMultiply = new MalFunction() {
-            @Override
-            public MalInt apply(MalList args) throws MalException {
-                int result = 1;
-
-                for(MalType i : args.getJValue()) {
-                    result *= checkMalInt(i);
-                }
-                return new MalInt(result);
-            }
-        };
-
-    static MalFunction malDivide = new MalFunction() {
-            @Override
-            public MalInt apply(MalList args) throws MalException {
-                int size = args.getJValue().size();
-
-                if (size == 0) throw new MalException("Wrong number of arguments: required >1, received 0.");
-
-                int result = checkMalInt(args.get(0));
-                if (size == 1) return new MalInt(1/result); // These are integers, so this will always return 0.
-
-                for (MalType i : args.getJValue().subList(1,size)) {
-                    result /= checkMalInt(i);
-                }
-                return new MalInt(result);
-            }
-        };
-
     static Env repl_env;
 
     static {
-        repl_env = new Env(null);
-        repl_env.set(new MalSymbol("+"), malAdd);
-        repl_env.set(new MalSymbol("-"), malSubtract);
-        repl_env.set(new MalSymbol("*"), malMultiply);
-        repl_env.set(new MalSymbol("/"), malDivide);
+        for (MalSymbol symbol : core.ns.keySet()) {
+            repl_env.set(symbol, core.ns.get(symbol));
+        }
     }
 
     public static void main(String args[]) {
