@@ -11,6 +11,9 @@ public class types {
 
         protected String type = "type";
 
+        /**
+         * Return the Java value of a MalType.
+         */
         public abstract Object getJValue();
 
         public abstract String pr_str(boolean readably);
