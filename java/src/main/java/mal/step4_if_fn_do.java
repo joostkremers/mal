@@ -179,12 +179,11 @@ public class step4_if_fn_do {
             throw new MalException("Wrong number of arguments for `if': expected 2-3, received " + list.size() + ".");
 
         MalType test = EVAL(list.get(0), env);
-        if ((boolean)test.getJValue() == true) return EVAL(list.get(1), env);
         if ((boolean)test.getJValue() == false) {
             if (list.size() == 2) return types.Nil;
             else return EVAL(list.get(2), env);
         }
-        else throw new MalException("Wrong argument type: expected boolean, received " + test.getType() + ".");
+        else return EVAL(list.get(1), env);
     }
 
     private static MalFunction malFn(MalList list, Env env) throws MalException {
