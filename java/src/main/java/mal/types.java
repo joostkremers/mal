@@ -11,7 +11,7 @@ public class types {
 
         protected String type = "type";
 
-        public abstract Object getValue();
+        public abstract Object getJValue();
 
         public abstract String pr_str(boolean readably);
 
@@ -33,7 +33,7 @@ public class types {
         }
 
         @Override
-        public Integer getValue() {
+        public Integer getJValue() {
             return value;
         }
 
@@ -47,7 +47,7 @@ public class types {
         List<MalType> items;
 
         @Override
-        public List<MalType> getValue() {
+        public List<MalType> getJValue() {
             return items;
         }
 
@@ -136,7 +136,7 @@ public class types {
         }
 
         @Override
-        public HashMap getValue() {
+        public HashMap getJValue() {
             return map;
         }
 
@@ -146,7 +146,7 @@ public class types {
 
             for (HashMap.Entry<MalType,MalType> entry : map.entrySet()) {
                 MalType key = entry.getKey();
-                MalType value = entry.getValue();
+                MalType value = entry.getJValue();
                 result.add(key.pr_str(readably) + " " + value.pr_str(readably));
             }
 
@@ -163,7 +163,7 @@ public class types {
         }
 
         @Override
-        public String getValue() {
+        public String getJValue() {
             return value;
         }
 
@@ -191,7 +191,7 @@ public class types {
         }
 
         @Override
-        public String getValue() {
+        public String getJValue() {
             return name;
         }
 
@@ -232,7 +232,7 @@ public class types {
         }
 
         @Override
-        public String getValue() {
+        public String getJValue() {
             return name;
         }
 
@@ -249,7 +249,7 @@ public class types {
         }
 
         @Override
-        public Boolean getValue() {
+        public Boolean getJValue() {
             return false;
         }
 
@@ -270,7 +270,7 @@ public class types {
         }
 
         @Override
-        public Boolean getValue() {
+        public Boolean getJValue() {
             return value;
         }
 
@@ -294,7 +294,7 @@ public class types {
         }
 
         @Override
-        public Object getValue() {
+        public Object getJValue() {
             return this;
         }
 

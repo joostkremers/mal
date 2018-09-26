@@ -24,7 +24,7 @@ public class step4_if_fn_do {
 
     private static int checkMalInt(MalType arg) throws MalException {
         if (arg instanceof MalInt)
-            return (int)arg.getValue();
+            return (int)arg.getJValue();
         else throw new MalException("Wrong argument type: expected int, got " + arg.getType() + ".");
     }
 
@@ -33,7 +33,7 @@ public class step4_if_fn_do {
             public MalInt apply(MalList args) throws MalException {
                 int result = 0;
 
-                for(MalType i : args.getValue()) {
+                for(MalType i : args.getJValue()) {
                     result += checkMalInt(i);
                 }
                 return new MalInt(result);
@@ -43,14 +43,14 @@ public class step4_if_fn_do {
     static MalFunction malSubtract = new MalFunction() {
             @Override
             public MalInt apply(MalList args) throws MalException {
-                int size = args.getValue().size();
+                int size = args.getJValue().size();
 
                 if (size == 0) return new MalInt(0);
 
                 int result = checkMalInt(args.get(0));
                 if (size == 1) return new MalInt(-result);
 
-                for (MalType i : args.getValue().subList(1,size)) {
+                for (MalType i : args.getJValue().subList(1,size)) {
                     result -= checkMalInt(i);
                 }
                 return new MalInt(result);
@@ -62,7 +62,7 @@ public class step4_if_fn_do {
             public MalInt apply(MalList args) throws MalException {
                 int result = 1;
 
-                for(MalType i : args.getValue()) {
+                for(MalType i : args.getJValue()) {
                     result *= checkMalInt(i);
                 }
                 return new MalInt(result);
@@ -72,14 +72,14 @@ public class step4_if_fn_do {
     static MalFunction malDivide = new MalFunction() {
             @Override
             public MalInt apply(MalList args) throws MalException {
-                int size = args.getValue().size();
+                int size = args.getJValue().size();
 
                 if (size == 0) throw new MalException("Wrong number of arguments: required >1, received 0.");
 
                 int result = checkMalInt(args.get(0));
                 if (size == 1) return new MalInt(1/result); // These are integers, so this will always return 0.
 
-                for (MalType i : args.getValue().subList(1,size)) {
+                for (MalType i : args.getJValue().subList(1,size)) {
                     result /= checkMalInt(i);
                 }
                 return new MalInt(result);
@@ -132,28 +132,28 @@ public class step4_if_fn_do {
             }
 
             // def!
-            if (argList.get(0).getValue().equals("def!")) {
+            if (argList.get(0).getJValue().equals("def!")) {
                 return malDef(argList.subList(1,size), env);
             }
 
             // let*
-            if (argList.get(0).getValue().equals("let*")) {
+            if (argList.get(0).getJValue().equals("let*")) {
                 return malLet(argList.subList(1,size), env);
             }
 
             // do
-            if (argList.get(0).getValue().equals("do")) {
+            if (argList.get(0).getJValue().equals("do")) {
                 MalList result = (MalList)eval_ast(argList.subList(1,size), env);
                 return result.get(size-2);
             }
 
             // if
-            if (argList.get(0).getValue().equals("if")) {
+            if (argList.get(0).getJValue().equals("if")) {
                 return malIf(argList.subList(1,size), env);
             }
 
             // fn*
-            if (argList.get(0).getValue().equals("fn*")) {
+            if (argList.get(0).getJValue().equals("fn*")) {
                 return malFn(argList.subList(1,size), env);
             }
 
@@ -183,14 +183,14 @@ public class step4_if_fn_do {
     private static MalType eval_ast(MalType ast, Env env) throws MalException {
         if (ast instanceof MalSymbol) {
             MalType result = env.get((MalSymbol)ast);
-            if (result == null) throw new MalException("Unbound symbol: " + ast.getValue() + ".");
+            if (result == null) throw new MalException("Unbound symbol: " + ast.getJValue() + ".");
             else return result;
         }
 
         if (ast instanceof MalList) {
             MalList astList = (MalList)ast,
                 result = new MalList();
-            for(MalType elem : astList.getValue()) {
+            for(MalType elem : astList.getJValue()) {
                 result.add(EVAL(elem, env));
             }
             return result;
@@ -199,17 +199,17 @@ public class step4_if_fn_do {
         if (ast instanceof MalVector) {
             MalVector astVector = (MalVector)ast,
                 result = new MalVector();
-            for(MalType elem : astVector.getValue()) {
+            for(MalType elem : astVector.getJValue()) {
                 result.add(EVAL(elem, env));
             }
             return result;
         }
 
         if (ast instanceof MalHash) {
-            HashMap<MalType, MalType> astHash = (HashMap)ast.getValue();
+            HashMap<MalType, MalType> astHash = (HashMap)ast.getJValue();
             MalHash result = new MalHash();
             for(HashMap.Entry<MalType,MalType> entry : astHash.entrySet()) {
-                result.put(entry.getKey(), EVAL(entry.getValue(), env));
+                result.put(entry.getKey(), EVAL(entry.getJValue(), env));
             }
             return result;
         }
@@ -252,8 +252,8 @@ public class step4_if_fn_do {
             throw new MalException("Wrong number of arguments for `if': expected 2-3, received " + list.size() + ".");
 
         MalType test = EVAL(list.get(0), env);
-        if ((boolean)test.getValue() == true) return EVAL(list.get(1), env);
-        if ((boolean)test.getValue() == false) {
+        if ((boolean)test.getJValue() == true) return EVAL(list.get(1), env);
+        if ((boolean)test.getJValue() == false) {
             if (list.size() == 2) return types.Nil;
             else return EVAL(list.get(2), env);
         }
@@ -272,7 +272,7 @@ public class step4_if_fn_do {
                 public MalType apply(MalList args) throws MalException {
                     if (params.size() != args.size())
                         throw new MalException("Wrong number of arguments: expected " + params.size() + ", received " + args.size());
-                    Env newEnv = new Env(env, params.getValue(), args.getValue());
+                    Env newEnv = new Env(env, params.getJValue(), args.getJValue());
                     return EVAL(body, newEnv);
                 }
             };

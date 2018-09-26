@@ -220,7 +220,7 @@ public class step2_eval {
       HashMap<MalType, MalType> astHash = (HashMap)ast.get();
       MalHash result = new MalHash();
       for(HashMap.Entry<MalType,MalType> entry : astHash.entrySet()) {
-        result.put(entry.getKey(), EVAL(entry.getValue(), env));
+        result.put(entry.getKey(), EVAL(entry.getJValue(), env));
       }
       return result;
     }
