@@ -152,6 +152,11 @@ public class step4_if_fn_do {
                 return malIf(argList.subList(1,size), env);
             }
 
+            // fn*
+            if (argList.get(0).getValue().equals("fn*")) {
+                return malFn(argList.subList(1,size), env);
+            }
+
             MalList evaledList = (MalList)eval_ast(arg, env);
 
             if (!(evaledList.get(0) instanceof MalCallable))
@@ -253,5 +258,25 @@ public class step4_if_fn_do {
             else return EVAL(list.get(2), env);
         }
         else throw new MalException("Wrong argument type: expected boolean, received " + test.getType() + ".");
+    }
+
+    private static MalFunction malFn(MalList list, Env env) throws MalException {
+        if (list.size() != 2) throw new MalException("Wrong number of arguments for `fn*': expected 2, received " + list.size() + ".");
+        if (!(list.get(0) instanceof MalSequence)) throw new MalException("Cannot let-bind: " + list.get(0).toString());
+
+        MalSequence params = (MalSequence)list.get(0);
+        MalType body = list.get(1);
+
+        MalFunction fn = new MalFunction() {
+                @Override
+                public MalType apply(MalList args) throws MalException {
+                    if (params.size() != args.size())
+                        throw new MalException("Wrong number of arguments: expected " + params.size() + ", received " + args.size());
+                    Env newEnv = new Env(env, params.getValue(), args.getValue());
+                    return EVAL(body, newEnv);
+                }
+            };
+
+        return fn;
     }
 }
